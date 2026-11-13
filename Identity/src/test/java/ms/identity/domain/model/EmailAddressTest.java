@@ -50,9 +50,35 @@ public class EmailAddressTest {
 
 		assertEquals(first, second);
 	}
-	
+
 	@Test
 	void shouldRejectInvalidEmail() {
 		assertThrows(IllegalArgumentException.class, () -> EmailAddress.of("1@test,cp"));
+	}
+
+	@Test
+	void shouldAcceptEmailWithPlusTag() {
+
+		EmailAddress email = EmailAddress.of("user+orders@example.com");
+
+		assertEquals("user+orders@example.com", email.value());
+	}
+
+	@Test
+	void shouldRejectLocalPartLongerThan64Characters() {
+
+		String localPart = "a".repeat(65);
+
+		String email = localPart + "@example.com";
+
+		assertThrows(IllegalArgumentException.class, () -> EmailAddress.of(email));
+	}
+
+	@Test
+	void shouldAcceptSubdomain() {
+
+		EmailAddress email = EmailAddress.of("user@mail.example.com");
+
+		assertEquals("user@mail.example.com", email.value());
 	}
 }

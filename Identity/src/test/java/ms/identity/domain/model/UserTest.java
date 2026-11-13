@@ -74,19 +74,11 @@ class UserTest {
 	}
 
 	@Test
-	void shouldNotLockUserAccount_expect_InvalidUserStateException() {
-
-		User user = createUser();
-
-		assertThrows(InvalidUserStateException.class, () -> user.lock(NOW));
-	}
-
-	@Test
 	void shouldLockUserAccount() {
 
 		User user = createUser();
 		user.activate(ACTIVATION_TIME);
-		user.lock(LOCKED_TIME);
+		user.block(LOCKED_TIME);
 
 		assertEquals(UserStatus.BLOCKED, user.getStatus());
 		assertEquals(LOCKED_TIME, user.getUpdatedAt());
@@ -97,19 +89,11 @@ class UserTest {
 
 		User user = createUser();
 		user.activate(ACTIVATION_TIME);
-		user.lock(LOCKED_TIME);
-		user.unlock(UNLOCKED_TIME);
+		user.block(LOCKED_TIME);
+		user.unblock(UNLOCKED_TIME);
 
 		assertEquals(UserStatus.ACTIVE, user.getStatus());
 		assertEquals(UNLOCKED_TIME, user.getUpdatedAt());
-	}
-
-	@Test
-	void shouldNotUnLockUserAccount_expect_InvalidUserStateException() {
-
-		User user = createUser();
-
-		assertThrows(InvalidUserStateException.class, () -> user.unlock(NOW));
 	}
 
 	@Test
@@ -141,7 +125,7 @@ class UserTest {
 
 		User user = createUser();
 
-		assertThrows(InvalidUserStateException.class, () -> user.lock(LOCKED_TIME));
+		assertThrows(InvalidUserStateException.class, () -> user.block(LOCKED_TIME));
 	}
 
 	@Test
@@ -149,7 +133,7 @@ class UserTest {
 
 		User user = createUser();
 
-		assertThrows(InvalidUserStateException.class, () -> user.unlock(UNLOCKED_TIME));
+		assertThrows(InvalidUserStateException.class, () -> user.unblock(UNLOCKED_TIME));
 	}
 
 	@Test
@@ -174,10 +158,26 @@ class UserTest {
 
 		User user = createUser();
 
-		assertThrows(InvalidUserStateException.class, () -> user.lock(LOCKED_TIME));
+		assertThrows(InvalidUserStateException.class, () -> user.block(LOCKED_TIME));
 
 		assertEquals(UserStatus.PENDING_VERIFICATION, user.getStatus());
 		assertEquals(NOW, user.getUpdatedAt());
+	}
+
+	@Test
+	void shouldRejectTransitionTimeBeforeLastUpdate() {
+
+		User user = createUser();
+
+		user.activate(ACTIVATION_TIME);
+
+		Instant olderTime = Instant.parse("2026-10-01T10:00:00Z");
+
+		assertThrows(IllegalArgumentException.class, () -> user.block(olderTime));
+
+		assertEquals(UserStatus.ACTIVE, user.getStatus());
+
+		assertEquals(ACTIVATION_TIME, user.getUpdatedAt());
 	}
 
 	private User createUser() {

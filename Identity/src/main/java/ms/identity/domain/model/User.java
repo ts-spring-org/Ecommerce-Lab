@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import ms.identity.domain.exception.InvalidUserStateException;
 
-public class User {
+public final class User {
 
 	private final UUID id;
 	private final EmailAddress email;
@@ -36,7 +36,7 @@ public class User {
 		return new User(id, email, passwordHash, firstname, lastname, now);
 	}
 
-	private String validateName(final String name) {
+	private static String validateName(final String name) {
 		if (name == null || name.isBlank()) {
 			throw new IllegalArgumentException("First- and Lastname should not be null or blank");
 		}
@@ -68,6 +68,10 @@ public class User {
 		return id.hashCode();
 	}
 
+	public UUID getId() {
+		return id;
+	}
+
 	public EmailAddress getEmail() {
 		return email;
 	}
@@ -97,8 +101,7 @@ public class User {
 	}
 
 	public void activate(final Instant now) {
-		Objects.requireNonNull(now, "Activation time is required.");
-
+		validateTransitionTime(now, "Activation time is required.");
 		if (this.status != UserStatus.PENDING_VERIFICATION) {
 			throw new InvalidUserStateException("Only pending users can be activated");
 		}
@@ -107,9 +110,8 @@ public class User {
 		this.updatedAt = now;
 	}
 
-	public void lock(final Instant now) {
-		Objects.requireNonNull(now, "Lock time is required.");
-
+	public void block(final Instant now) {
+		validateTransitionTime(now, "Lock time is required.");
 		if (this.status != UserStatus.ACTIVE) {
 			throw new InvalidUserStateException("Only active users can be locked.");
 		}
@@ -118,14 +120,22 @@ public class User {
 		this.updatedAt = now;
 	}
 
-	public void unlock(final Instant now) {
-		Objects.requireNonNull(now, "Unlock time is required.");
-
+	public void unblock(final Instant now) {
+		validateTransitionTime(now, "Unlock time is required.");
 		if (this.status != UserStatus.BLOCKED) {
 			throw new InvalidUserStateException("Only blocked users can be unlocked.");
 		}
 		this.status = UserStatus.ACTIVE;
 		this.updatedAt = now;
+	}
+
+	private void validateTransitionTime(final Instant now, final String message) {
+
+		Objects.requireNonNull(now, message);
+
+		if (now.isBefore(updatedAt)) {
+			throw new IllegalArgumentException("Transition time cannot be before last update time.");
+		}
 	}
 
 	/*

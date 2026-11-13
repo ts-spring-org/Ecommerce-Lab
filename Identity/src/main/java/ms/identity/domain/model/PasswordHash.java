@@ -8,7 +8,7 @@ public record PasswordHash(String encodedValue) {
 		Objects.requireNonNull(encodedValue, "Password hash cannot be null");
 
 		if (encodedValue.isBlank()) {
-			throw new IllegalArgumentException("Passowrd hash cannot be blank.");
+			throw new IllegalArgumentException("Password hash cannot be blank.");
 		}
 	}
 
