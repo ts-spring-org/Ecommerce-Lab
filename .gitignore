@@ -3,3 +3,6 @@
 
 ../Backlog.md
 ../Phasen-README.md
+
+/database/postgres_data/
+/database/pgadmin_data/
