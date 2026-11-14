@@ -30,7 +30,7 @@ public record EmailAddress(String value) {
 		int atIndex = normalized.indexOf("@");
 
 		if (atIndex > 64) {
-		    throw new IllegalArgumentException("Email local part exceeds maximum length");
+		    throw new IllegalArgumentException("Email local part exceeds maximum length.");
 		}
 	
 		value = normalized;

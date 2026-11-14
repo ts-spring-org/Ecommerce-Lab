@@ -43,7 +43,7 @@ public final class User {
 
 		final String normalizedName = name.trim();
 		if (normalizedName.length() > 100) {
-			throw new IllegalArgumentException("Invalid name.");
+			throw new IllegalArgumentException("Name must not exceed 100 characters.");
 		}
 
 		return normalizedName;
@@ -111,7 +111,7 @@ public final class User {
 	}
 
 	public void block(final Instant now) {
-		validateTransitionTime(now, "Lock time is required.");
+		validateTransitionTime(now, "BLocking time is required.");
 		if (this.status != UserStatus.ACTIVE) {
 			throw new InvalidUserStateException("Only active users can be locked.");
 		}
@@ -121,7 +121,7 @@ public final class User {
 	}
 
 	public void unblock(final Instant now) {
-		validateTransitionTime(now, "Unlock time is required.");
+		validateTransitionTime(now, "Unblocking time is required.");
 		if (this.status != UserStatus.BLOCKED) {
 			throw new InvalidUserStateException("Only blocked users can be unlocked.");
 		}
@@ -134,7 +134,7 @@ public final class User {
 		Objects.requireNonNull(now, message);
 
 		if (now.isBefore(updatedAt)) {
-			throw new IllegalArgumentException("Transition time cannot be before last update time.");
+			throw new IllegalArgumentException("Transition time must be after last update time.");
 		}
 	}
 }
