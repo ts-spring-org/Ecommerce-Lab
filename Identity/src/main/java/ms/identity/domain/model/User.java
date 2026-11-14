@@ -32,13 +32,13 @@ public final class User {
 	}
 
 	public static User register(final UUID id, final EmailAddress email, final PasswordHash passwordHash,
-			final String firstname, final String lastname, final Instant now) {
-		return new User(id, email, passwordHash, firstname, lastname, now);
+			final String firstName, final String lastName, final Instant now) {
+		return new User(id, email, passwordHash, firstName, lastName, now);
 	}
 
 	private static String validateName(final String name) {
 		if (name == null || name.isBlank()) {
-			throw new IllegalArgumentException("First- and Lastname should not be null or blank");
+			throw new IllegalArgumentException("Name should not be null or blank");
 		}
 
 		final String normalizedName = name.trim();
@@ -137,10 +137,4 @@ public final class User {
 			throw new IllegalArgumentException("Transition time cannot be before last update time.");
 		}
 	}
-
-	/*
-	 * public void changeUpdateAt() { final Clock clock = Clock.systemUTC();
-	 * this.updatedAt = Objects.requireNonNull(clock.instant()); }
-	 */
-
 }
