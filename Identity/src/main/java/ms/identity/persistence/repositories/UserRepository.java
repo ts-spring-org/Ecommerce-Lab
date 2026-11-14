@@ -1,4 +1,4 @@
-package ms.identity.persistence.repositories;
+/*package ms.identity.persistence.repositories;
 
 import java.util.UUID;
 
@@ -9,3 +9,4 @@ import ms.identity.domain.model.UserEntity;
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
 }
+*/

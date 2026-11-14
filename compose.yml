@@ -31,3 +31,16 @@ services:
         condition: service_healthy
     volumes:
       - ./database/pgadmin_data:/var/lib/pgadmin
+
+	  
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    depends_on:
+      - postgres
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://postgres:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    ports:
+      - "9000:9000"
