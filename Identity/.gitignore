@@ -55,7 +55,6 @@ temp/
 
 # Generated files
 generated/
-out/
 
 # Maven Wrapper
 .mvn/wrapper/maven-wrapper.jar
@@ -72,5 +71,5 @@ application-dev.properties
 *.keystore
 secret.properties
 
-bin/
+Identity/bin/
 .factorypath
