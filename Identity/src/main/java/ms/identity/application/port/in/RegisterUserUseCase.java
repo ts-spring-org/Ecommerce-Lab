@@ -1,5 +1,8 @@
 package ms.identity.application.port.in;
 
-public class RegisterUserUseCase {
+import ms.identity.application.command.RegisterUserCommand;
+import ms.identity.application.results.RegisterUserResult;
 
+public interface RegisterUserUseCase {
+	RegisterUserResult register(final RegisterUserCommand user);
 }
