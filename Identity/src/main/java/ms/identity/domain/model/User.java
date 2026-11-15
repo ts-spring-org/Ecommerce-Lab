@@ -40,7 +40,7 @@ public final class User {
 		this.firstName = validateName(firstName);
 		this.lastName = validateName(lastName);
 
-		this.status = status;
+		this.status = Objects.requireNonNull(status);
 		this.createdAt = Objects.requireNonNull(createdAt);
 		this.updatedAt = Objects.requireNonNull(updatedAt);
 

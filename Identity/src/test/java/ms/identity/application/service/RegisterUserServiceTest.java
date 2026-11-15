@@ -58,12 +58,14 @@ class RegisterUserServiceTest {
 		RegisterUserResult result = registerUserService.register(COMMAND);
 
 		assertNotNull(result);
-		assertEquals(result.email(), COMMAND.email());
-		assertEquals(result.status(), UserStatus.PENDING_VERIFICATION);
-		assertEquals(result.createdAt(), NOW);
+		assertNotNull(result.id());
+		assertEquals(COMMAND.email(), result.email());
+		assertEquals(UserStatus.PENDING_VERIFICATION, result.status());
+		assertEquals(NOW, result.createdAt());
 
 		verify(userRepositoryPortMock).existsByEmail(EmailAddress.of(COMMAND.email()));
 		verify(passwordHasherPortMock).hash(COMMAND.rawPassword());
+		verify(userRepositoryPortMock).save(any(User.class));
 	}
 
 	@Test
@@ -85,6 +87,7 @@ class RegisterUserServiceTest {
 
 		assertThrows(IllegalArgumentException.class, () -> registerUserService.register(COMMAND));
 
+		verify(userRepositoryPortMock).save(any(User.class));
 	}
 
 	@Test
