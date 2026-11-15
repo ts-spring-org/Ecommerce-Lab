@@ -1,5 +1,6 @@
 package ms.identity.application.service;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -16,20 +17,21 @@ import ms.identity.domain.model.User;
 public class RegisterUserService implements RegisterUserUseCase {
 	private final PasswordHasherPort passwordHashedPort;
 	private final UserRepositoryPort userRepositoryPort;
+	private final Clock clock;
 
-	public RegisterUserService(final PasswordHasherPort passwordHashedPort,
-			final UserRepositoryPort userRepositoryPort) {
+	public RegisterUserService(final PasswordHasherPort passwordHashedPort, final UserRepositoryPort userRepositoryPort,
+			final Clock clock) {
 		this.passwordHashedPort = passwordHashedPort;
 		this.userRepositoryPort = userRepositoryPort;
+		this.clock = clock;
 	}
 
 	@Override
 	public RegisterUserResult register(final RegisterUserCommand command) {
 
 		final EmailAddress email = EmailAddress.of(command.email());
-		final boolean emailExists = userRepositoryPort.existsByEmail(email);
 
-		if (emailExists) {
+		if (userRepositoryPort.existsByEmail(email)) {
 			throw new EmailAlreadyRegisteredException();
 		}
 
@@ -37,7 +39,7 @@ public class RegisterUserService implements RegisterUserUseCase {
 
 		final PasswordHash pwdHash = new PasswordHash(encodedPassword);
 
-		final Instant now = Instant.now();
+		final Instant now = Instant.now(clock);
 		User user = User.register(UUID.randomUUID(), email, pwdHash, command.firstName(), command.lastName(), now);
 
 		userRepositoryPort.save(user);

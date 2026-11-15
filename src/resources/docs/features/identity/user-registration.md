@@ -6,26 +6,33 @@ The User Registration feature is responsible for creating a new user within the 
 
 The Domain Layer encapsulates the business rules and protects the consistency of the User entity independently of frameworks and infrastructure.
 
+It follows Hexagonal Architecture:
+- **Domain Layer**: Encapsulates business rules and protects the consistency of the User aggregate.
+- **Application Layer**: Orchestrates the registration use case through inbound and outbound ports.
+- **Persistence Adapter**: Will provide database-backed user persistence through the application port.
+
 ## 2. Domain Model
 
 ### User
 
-`User` is the aggregate root responsible for managing the user lifecycle.
+**User** is the aggregate root responsible for managing the user lifecycle.
 
 It contains:
 
-- `UUID id`
-- `EmailAddress email`
-- `PasswordHash passwordHash`
-- `String firstName`
-- `String lastName`
-- `UserStatus status`
-- `Instant createdAt`
-- `Instant updatedAt`
+```
+UUID id
+EmailAddress email
+PasswordHash passwordHash
+String firstName
+String lastName
+UserStatus status
+Instant createdAt
+Instant updatedAt
+```
 
-User creation is performed through the `User.register(...)` factory method.
+User creation is performed through the **User.register(...)** factory method.
 
-A newly registered user starts with `PENDING_VERIFICATION` status.
+A newly registered user starts with **PENDING_VERIFICATION** status.
 
 ### Value Objects
 
@@ -75,9 +82,92 @@ Lifecycle timestamps cannot move backwards relative to `updatedAt`.
 - User identity is based on its UUID.
 - Invalid lifecycle transitions are rejected.
 
-## 5. Testing
+## 5. Application Layer
 
-The Domain Layer tests cover:
+The Application Layer implements the user registration use case without depending on Spring, JPA, or a specific password hashing implementation.
+
+### 5.1 RegisterUserCommand
+
+`RegisterUserCommand` carries the input required to register a user:
+
+- `email`
+- `rawPassword`
+- `firstName`
+- `lastName`
+
+### 5.2 RegisterUserUseCase
+
+The inbound port exposes the registration operation:
+
+`register(RegisterUserCommand command)`
+
+It returns a dedicated `RegisterUserResult`.
+
+### 5.3 RegisterUserService
+
+`RegisterUserService` implements `RegisterUserUseCase` and orchestrates the registration process.
+
+Registration flow:
+
+1. Convert the supplied email into an `EmailAddress`.
+2. Check whether the email is already registered.
+3. Hash the raw password through `PasswordHasherPort`.
+4. Create a `PasswordHash` from the encoded password.
+5. Obtain the current timestamp through the injected `Clock`.
+6. Create the User aggregate using `User.register(...)`.
+7. Persist the user through `UserRepositoryPort`.
+8. Return a `RegisterUserResult`.
+
+### 5.4 Outbound Ports
+
+**UserRepositoryPort**
+
+Defines the persistence operations required by the use case:
+
+- `existsByEmail(EmailAddress email)`
+- `save(User user)`
+
+**PasswordHasherPort**
+
+Defines the password hashing operation:
+
+- `hash(String rawPassword)`
+
+The Application Layer depends on these abstractions rather than infrastructure implementations.
+
+### 5.5 RegisterUserResult
+
+The use case returns a dedicated output model containing:
+
+- `UUID id`
+- `String email`
+- `UserStatus status`
+- `Instant createdAt`
+
+This prevents the application boundary from exposing the Domain aggregate directly.
+
+### 5.6 Email Uniqueness
+
+Email uniqueness is protected through two complementary mechanisms:
+
+- **Application pre-check:** `UserRepositoryPort.existsByEmail(...)` detects an already registered email before password hashing.
+- **Database unique constraint:** Provides the final guarantee against concurrent registration attempts.
+
+The persistence adapter is responsible for translating a database duplicate-key violation into `EmailAlreadyRegisteredException`, an Application Layer exception.
+
+The exception does not expose the submitted email address.
+
+### 5.7 Time Management
+
+`RegisterUserService` receives a `Clock` through constructor injection.
+
+This keeps time-dependent application behavior deterministic and testable.
+
+## 6. Testing
+
+### Domain Layer
+
+Tests cover:
 
 - User creation and initial state.
 - Email validation and normalization.
@@ -86,10 +176,25 @@ The Domain Layer tests cover:
 - Invalid state transitions.
 - Timestamp consistency.
 
-## 6. Implementation Status
+### Application Layer
+
+Tests cover:
+
+- Successful registration.
+- Existing email rejection.
+- Password hashing and persistence orchestration.
+- Returning the registration result.
+
+## 7. Implementation Status
+
+| Layer | Status |
+|---|---|
+| Domain | Completed |
+| Application | Completed |
+| Persistence Adapter | Next |
 
 **Status: Completed**
 
-The Domain Layer implementation and its unit tests have been completed.
+The Domain and Application Layers have been implemented and their reported tests pass.
 
-Application Layer design and implementation are documented separately as the feature progresses.
+The Persistence Adapter will be implemented next, with database mapping, email uniqueness enforcement, duplicate-key translation, and adapter tests.
