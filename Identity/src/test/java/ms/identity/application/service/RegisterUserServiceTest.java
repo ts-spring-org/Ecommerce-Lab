@@ -15,6 +15,7 @@ import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import ms.identity.application.command.RegisterUserCommand;
@@ -25,8 +26,6 @@ import ms.identity.application.results.RegisterUserResult;
 import ms.identity.domain.model.EmailAddress;
 import ms.identity.domain.model.User;
 import ms.identity.domain.model.UserStatus;
-
-import org.mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RegisterUserServiceTest {
@@ -41,7 +40,6 @@ class RegisterUserServiceTest {
 	private static final RegisterUserCommand COMMAND = new RegisterUserCommand("user@example.com", "hash@password",
 			"user", "lname");
 
-	// @InjectMocks
 	private RegisterUserService registerUserService;
 
 	@BeforeEach

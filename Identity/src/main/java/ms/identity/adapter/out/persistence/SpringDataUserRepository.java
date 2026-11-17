@@ -1,5 +1,9 @@
 package ms.identity.adapter.out.persistence;
 
-public class SpringDataUserRepository{
+import java.util.UUID;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SpringDataUserRepository extends JpaRepository<UserJpaEntity, UUID>{
+	boolean existsByEmail(final String email);
 }
