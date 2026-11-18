@@ -30,7 +30,7 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
 
 	@Override
 	@Transactional
-	public void save(User user) {
+	public void save(final User user) {
 		try {
 			repository.saveAndFlush(mapper.mapToUserJpaEntity(user));
 		}catch(final DataIntegrityViolationException exception) {
@@ -47,7 +47,8 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
         Throwable cause = exception;
 
         while (cause != null) {
-            if (cause instanceof ConstraintViolationException violation) {
+            if (cause instanceof ConstraintViolationException) {
+            	final ConstraintViolationException violation = (ConstraintViolationException) cause;
                 return EMAIL_UNIQUE_CONSTRAINT.equals(violation.getConstraintName());
             }
 
