@@ -8,6 +8,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
@@ -20,6 +22,12 @@ public class SecurityConfiguration {
     SecurityFilterChain identitySecurityFilterChain(HttpSecurity http) throws Exception {
         CookieCsrfTokenRepository csrfRepository=CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepository.setHeaderName("X-XSRF-TOKEN");
+        JwtGrantedAuthoritiesConverter authorities=new JwtGrantedAuthoritiesConverter();
+        authorities.setAuthoritiesClaimName("roles");
+        authorities.setAuthorityPrefix("");
+        JwtAuthenticationConverter jwtConverter=new JwtAuthenticationConverter();
+        jwtConverter.setJwtGrantedAuthoritiesConverter(authorities);
+
         return http.cors(Customizer.withDefaults())
                 .csrf(csrf->csrf.csrfTokenRepository(csrfRepository)
                         .ignoringRequestMatchers("/api/v1/auth/mobile/**"))
@@ -33,7 +41,7 @@ public class SecurityConfiguration {
                                 "/api/v1/auth/resend-verification").permitAll()
                         .requestMatchers("/actuator/health","/actuator/info").permitAll()
                         .anyRequest().authenticated())
-                .oauth2ResourceServer(resource->resource.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer(resource->resource.jwt(jwt->jwt.jwtAuthenticationConverter(jwtConverter)))
                 .build();
     }
 
