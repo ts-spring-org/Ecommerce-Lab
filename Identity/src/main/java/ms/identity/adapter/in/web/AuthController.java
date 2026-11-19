@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Map;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -47,25 +48,29 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AccessTokenResponse> webLogin(@Valid @RequestBody LoginRequest request) {
         TokenPair pair=login.login(new LoginCommand(request.email(),request.password(),"WEB"));
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,refreshCookie(pair.refreshToken(),refreshTtl).toString())
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header("Pragma","no-cache")
+                .header(HttpHeaders.SET_COOKIE,refreshCookie(pair.refreshToken(),refreshTtl).toString())
                 .body(new AccessTokenResponse(pair.accessToken(),pair.tokenType(),pair.expiresInSeconds()));
     }
 
     @PostMapping("/mobile/login")
     public ResponseEntity<TokenPair> mobileLogin(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(login.login(new LoginCommand(request.email(),request.password(),"MOBILE")));
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header("Pragma","no-cache")
+                .body(login.login(new LoginCommand(request.email(),request.password(),"MOBILE")));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<AccessTokenResponse> webRefresh(@CookieValue(name="refresh_token",required=false) String token) {
         TokenPair pair=refresh.refresh(token,"WEB");
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE,refreshCookie(pair.refreshToken(),refreshTtl).toString())
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header("Pragma","no-cache")
+                .header(HttpHeaders.SET_COOKIE,refreshCookie(pair.refreshToken(),refreshTtl).toString())
                 .body(new AccessTokenResponse(pair.accessToken(),pair.tokenType(),pair.expiresInSeconds()));
     }
 
     @PostMapping("/mobile/refresh")
     public ResponseEntity<TokenPair> mobileRefresh(@RequestHeader(name="X-Refresh-Token",required=false) String token) {
-        return ResponseEntity.ok(refresh.refresh(token,"MOBILE"));
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header("Pragma","no-cache")
+                .body(refresh.refresh(token,"MOBILE"));
     }
 
     @PostMapping("/logout")
@@ -89,12 +94,13 @@ public class AuthController {
     @PostMapping("/resend-verification")
     public ResponseEntity<Void> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
         resendVerification.resend(request.email());
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.accepted().cacheControl(CacheControl.noStore()).build();
     }
 
     @GetMapping("/me")
-    public Map<String,Object> me(@AuthenticationPrincipal Jwt jwt) {
-        return Map.of("userId",jwt.getSubject(),"roles",jwt.getClaimAsStringList("roles"));
+    public ResponseEntity<Map<String,Object>> me(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(Map.of("userId",jwt.getSubject(),"roles",jwt.getClaimAsStringList("roles")));
     }
 
     private ResponseCookie refreshCookie(String token,Duration maxAge) {
