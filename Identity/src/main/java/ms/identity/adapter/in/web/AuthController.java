@@ -1,11 +1,14 @@
 package ms.identity.adapter.in.web;
 
 import java.time.Duration;
+import java.util.Map;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ms.identity.adapter.in.web.dtos.AccessTokenResponse;
 import ms.identity.adapter.in.web.dtos.LoginRequest;
@@ -89,7 +92,12 @@ public class AuthController {
         return ResponseEntity.accepted().build();
     }
 
-    @GetMapping("/me")\n    public java.util.Map<String,Object> me(@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {\n        return java.util.Map.of("userId",jwt.getSubject(),"roles",jwt.getClaimAsStringList("roles"));\n    }\n\n    private ResponseCookie refreshCookie(String token,Duration maxAge) {
+    @GetMapping("/me")
+    public Map<String,Object> me(@AuthenticationPrincipal Jwt jwt) {
+        return Map.of("userId",jwt.getSubject(),"roles",jwt.getClaimAsStringList("roles"));
+    }
+
+    private ResponseCookie refreshCookie(String token,Duration maxAge) {
         return ResponseCookie.from("refresh_token",token).httpOnly(true).secure(cookieSecure)
                 .sameSite(sameSite).path("/api/v1/auth").maxAge(maxAge).build();
     }
