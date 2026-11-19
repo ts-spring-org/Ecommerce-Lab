@@ -24,7 +24,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
     @Autowired private JdbcTemplate jdbc;
 
     @Test
-    void pendingAccountCannotLoginAndVerificationActivatesItExactlyOnce() {
+    void pendingAccountCannotLoginAndVerificationActivatesItExactlyOnce() throws Exception {
         String email=uniqueEmail();
         String password="StrongPassword123";
         ResponseEntity<Map> registration=register(email,password);
@@ -37,7 +37,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
         String verificationUrl=jdbc.queryForObject(
                 "SELECT payload->>'verificationUrl' FROM outbox_events WHERE aggregate_id=? ORDER BY occurred_at DESC LIMIT 1",
                 String.class,userId);
-        String token=verificationUrl.substring(verificationUrl.lastIndexOf("token=")+6);
+        String token=verificationUrl.substring(verificationUrl.lastIndexOf("token=")+6);\n        String verificationHash=jdbc.queryForObject("SELECT token_hash FROM email_verification_tokens WHERE user_id=?",String.class,userId);\n        assertNotEquals(token,verificationHash);\n        assertEquals(sha256(token),verificationHash.trim());
         ResponseEntity<Void> verified=rest.postForEntity("/api/v1/auth/verify-email",
                 Map.of("token",token),Void.class);
         assertEquals(NO_CONTENT,verified.getStatusCode());
