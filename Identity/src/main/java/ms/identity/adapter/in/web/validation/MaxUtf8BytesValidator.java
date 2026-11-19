@@ -1,4 +1,4 @@
-package ms.identity.adapter.in.webvalidation;
+package ms.identity.adapter.in.web.validation;
 
 import java.nio.charset.StandardCharsets;
 

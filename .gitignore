@@ -79,3 +79,5 @@ application-dev.properties
 *.p12
 *.keystore
 secret.properties
+
+review/

@@ -2,6 +2,7 @@ package ms.identity.adapter.in.web;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import ms.identity.application.results.RegisterUserResult;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@CrossOrigin(origins = "http://localhost:5173")
 public class UserRegistrationController {
 	private final RegisterUserUseCase registerUserUseCase;
 

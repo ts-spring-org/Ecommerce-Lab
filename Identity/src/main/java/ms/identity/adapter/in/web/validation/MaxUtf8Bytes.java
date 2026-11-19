@@ -1,4 +1,4 @@
-package ms.identity.adapter.in.webvalidation;
+package ms.identity.adapter.in.web.validation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
