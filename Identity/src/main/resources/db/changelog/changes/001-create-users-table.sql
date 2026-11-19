@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
 --changeset identity-team:001-create-users-table
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     id UUID PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
