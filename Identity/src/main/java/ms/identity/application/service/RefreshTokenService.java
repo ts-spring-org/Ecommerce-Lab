@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Transactional;\nimport ms.identity.application.exception.InvalidRefreshTokenException;
 
 import ms.identity.application.exception.AuthenticationNotAllowedException;
 import ms.identity.application.exception.InvalidRefreshTokenException;
@@ -27,16 +27,16 @@ public class RefreshTokenService implements RefreshTokenUseCase {
     private final AccessTokenProviderPort accessTokens;
     private final UserRepositoryPort users;
     private final Clock clock;
-    private final Duration refreshTtl;
+    private final Duration refreshTtl;\n    private final Duration accessTtl;
 
     public RefreshTokenService(RefreshTokenRepositoryPort tokens, RefreshTokenGeneratorPort generator,
             AccessTokenProviderPort accessTokens, UserRepositoryPort users, Clock clock,
             @Value("${identity.security.refresh-token.ttl}") Duration refreshTtl) {
         this.tokens=tokens; this.generator=generator; this.accessTokens=accessTokens;
-        this.users=users; this.clock=clock; this.refreshTtl=refreshTtl;
+        this.users=users; this.clock=clock; this.refreshTtl=refreshTtl; this.accessTtl=accessTtl;
     }
 
-    @Override @Transactional
+    @Override @Transactional(noRollbackFor = {InvalidRefreshTokenException.class, AuthenticationNotAllowedException.class})
     public TokenPair refresh(String rawRefreshToken, String expectedClientType) {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) throw new InvalidRefreshTokenException();
         String client=LoginService.normalizeClient(expectedClientType);
@@ -63,6 +63,6 @@ public class RefreshTokenService implements RefreshTokenUseCase {
         tokens.consume(stored.id(),now,replacementId);
         tokens.insert(replacementId,user.getId(),stored.familyId(),generator.hash(replacement),
                 client,now,now.plus(refreshTtl));
-        return new TokenPair(accessTokens.issue(user.getId(), List.of("ROLE_USER")),replacement,900);
+        return new TokenPair(accessTokens.issue(user.getId(), List.of("ROLE_USER")),replacement,accessTtl.toSeconds());
     }
 }
