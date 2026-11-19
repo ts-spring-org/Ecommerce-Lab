@@ -36,7 +36,8 @@ public class SecurityConfiguration {
                                 "/api/v1/auth/refresh",
                                 "/api/v1/auth/mobile/refresh",
                                 "/api/v1/auth/verify-email",
-                                "/api/v1/auth/resend-verification").permitAll()
+                                "/api/v1/auth/resend-verification",
+                                "/api/v1/auth/csrf").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))
