@@ -1,6 +1,5 @@
 package ms.identity.application.port.out;
-
 public interface PasswordHasherPort {
-	String hash(final String rawPassword);
-
+    String hash(String rawPassword);
+    boolean matches(String rawPassword, String encodedPassword);
 }
