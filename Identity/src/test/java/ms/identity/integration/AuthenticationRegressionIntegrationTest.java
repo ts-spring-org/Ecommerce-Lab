@@ -121,6 +121,56 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
         assertEquals(0,jdbc.queryForObject("SELECT COUNT(*) FROM refresh_tokens WHERE user_id=?",Integer.class,userId));
     }
 
+
+    @Test
+    void webRefreshCookieIsHttpOnlyAndRotatedWithCsrfProtection() {
+        String email=uniqueEmail(),password="StrongPassword123";
+        registerAndActivate(email,password);
+
+        ResponseEntity<Map> csrf=rest.getForEntity("/api/v1/auth/csrf",Map.class);
+        assertEquals(OK,csrf.getStatusCode());
+        String csrfToken=csrf.getBody().get("token").toString();
+        String csrfCookie=cookiePair(csrf.getHeaders().getFirst(HttpHeaders.SET_COOKIE),"XSRF-TOKEN");
+
+        HttpHeaders loginHeaders=new HttpHeaders();
+        loginHeaders.setContentType(MediaType.APPLICATION_JSON);
+        loginHeaders.add(HttpHeaders.COOKIE,csrfCookie);
+        loginHeaders.set("X-XSRF-TOKEN",csrfToken);
+        ResponseEntity<Map> login=rest.exchange("/api/v1/auth/login",HttpMethod.POST,
+                new HttpEntity<>(Map.of("email",email,"password",password),loginHeaders),Map.class);
+        assertEquals(OK,login.getStatusCode());
+        assertFalse(login.getBody().containsKey("refreshToken"));
+        String firstRefreshCookie=login.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+        assertTrue(firstRefreshCookie.contains("HttpOnly"));
+        assertTrue(firstRefreshCookie.contains("SameSite=Lax"));
+        String firstRefresh=cookiePair(firstRefreshCookie,"refresh_token");
+
+        HttpHeaders refreshHeaders=new HttpHeaders();
+        refreshHeaders.add(HttpHeaders.COOKIE,csrfCookie+"; "+firstRefresh);
+        refreshHeaders.set("X-XSRF-TOKEN",csrfToken);
+        ResponseEntity<Map> refreshed=rest.exchange("/api/v1/auth/refresh",HttpMethod.POST,
+                new HttpEntity<>(refreshHeaders),Map.class);
+        assertEquals(OK,refreshed.getStatusCode());
+        String secondRefreshCookie=refreshed.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+        String secondRefresh=cookiePair(secondRefreshCookie,"refresh_token");
+        assertNotEquals(firstRefresh,secondRefresh);
+
+        HttpHeaders logoutHeaders=new HttpHeaders();
+        logoutHeaders.add(HttpHeaders.COOKIE,csrfCookie+"; "+secondRefresh);
+        logoutHeaders.set("X-XSRF-TOKEN",csrfToken);
+        ResponseEntity<Void> logout=rest.exchange("/api/v1/auth/logout",HttpMethod.POST,
+                new HttpEntity<>(logoutHeaders),Void.class);
+        assertEquals(NO_CONTENT,logout.getStatusCode());
+        assertTrue(logout.getHeaders().getFirst(HttpHeaders.SET_COOKIE).contains("Max-Age=0"));
+    }
+
+    private String cookiePair(String setCookie,String name) {
+        assertNotNull(setCookie);
+        return java.util.Arrays.stream(setCookie.split(";"))
+                .map(String::trim).filter(value->value.startsWith(name+"="))
+                .findFirst().orElseThrow();
+    }
+
     private UUID registerAndActivate(String email,String password) {
         ResponseEntity<Map> response=register(email,password);
         assertEquals(CREATED,response.getStatusCode());
