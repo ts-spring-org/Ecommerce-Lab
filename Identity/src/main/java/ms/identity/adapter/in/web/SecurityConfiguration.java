@@ -11,15 +11,18 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import ms.identity.adapter.out.security.JdbcAuthenticationRateLimiter;
 
 @Configuration
 public class SecurityConfiguration {
     @Bean
-    SecurityFilterChain identitySecurityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain identitySecurityFilterChain(HttpSecurity http,JdbcAuthenticationRateLimiter limiter,
+            @Value("${identity.rate-limit.enabled:true}") boolean rateLimitEnabled) throws Exception {
         CookieCsrfTokenRepository csrfRepository=CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepository.setHeaderName("X-XSRF-TOKEN");
         JwtGrantedAuthoritiesConverter authorities=new JwtGrantedAuthoritiesConverter();
@@ -27,6 +30,9 @@ public class SecurityConfiguration {
         authorities.setAuthorityPrefix("");
         JwtAuthenticationConverter jwtConverter=new JwtAuthenticationConverter();
         jwtConverter.setJwtGrantedAuthoritiesConverter(authorities);
+
+        if(rateLimitEnabled)
+            http.addFilterBefore(new AuthenticationRateLimitFilter(limiter),AuthorizationFilter.class);
 
         return http.cors(Customizer.withDefaults())
                 .csrf(csrf->csrf.csrfTokenRepository(csrfRepository)
