@@ -110,6 +110,98 @@ class UserTest {
 
 	// endregion
 
+	// region Reconstitute
+
+	@Test
+	void shouldReconstituteUserWithActiveStatus() throws Exception {
+		User user = reconstituteUser();
+
+		assertNotNull(user);
+		assertEquals(UserStatus.ACTIVE, user.getStatus());
+		assertEquals(EMAIL, user.getEmail());
+		assertEquals(NOW, user.getCreatedAt());
+		assertEquals(ACTIVATION_TIME, user.getUpdatedAt());
+	}
+
+	@Test
+	void shouldRejectReconstituteNullId() {
+		assertThrows(NullPointerException.class, () -> User.reconstitute(null, EMAIL, PASSWORD_HASH, FIRST_NAME,
+				LAST_NAME, UserStatus.BLOCKED, NOW, BLOCKED_TIME));
+	}
+
+	@Test
+	void shouldRejectReconstitutionNullEmail() {
+		assertThrows(NullPointerException.class, () -> User.reconstitute(ID, null, PASSWORD_HASH, FIRST_NAME, LAST_NAME,
+				UserStatus.BLOCKED, NOW, BLOCKED_TIME));
+	}
+
+	@Test
+	void shouldRejectReconstitutionNullPasswordHash() {
+		assertThrows(NullPointerException.class,
+				() -> User.reconstitute(ID, EMAIL, null, FIRST_NAME, LAST_NAME, UserStatus.BLOCKED, NOW, BLOCKED_TIME));
+	}
+
+	@Test
+	void shouldRejectReconstitutionNullCreationTime() {
+		assertThrows(NullPointerException.class, () -> User.reconstitute(ID, EMAIL, PASSWORD_HASH, FIRST_NAME,
+				LAST_NAME, UserStatus.ACTIVE, null, BLOCKED_TIME));
+	}
+
+	@Test
+	void shouldRejectReconstitutionBlankFirstName() {
+		assertThrows(IllegalArgumentException.class,
+				() -> User.reconstitute(ID, EMAIL, PASSWORD_HASH, "", LAST_NAME, UserStatus.ACTIVE, NOW, BLOCKED_TIME));
+	}
+
+	@Test
+	void shouldRejectReconstitutionBlankLastName() {
+
+		assertThrows(IllegalArgumentException.class,
+				() -> User.reconstitute(ID, EMAIL, PASSWORD_HASH, FIRST_NAME, "", UserStatus.BLOCKED, NOW, BLOCKED_TIME));
+	}
+
+	@Test
+	void shouldRejectReconstitutionNullFirstName() {
+		assertThrows(IllegalArgumentException.class,
+				() -> User.reconstitute(ID, EMAIL, PASSWORD_HASH, null, LAST_NAME, UserStatus.BLOCKED, NOW, BLOCKED_TIME));
+	}
+
+	@Test
+	void shouldRejectReconstitutionNullLastName() {
+		assertThrows(IllegalArgumentException.class, () -> User.reconstitute(ID, new EmailAddress("user@example.com"),
+				new PasswordHash("hashed"), "Anna", null, UserStatus.ACTIVE, NOW, BLOCKED_TIME));
+	}
+
+	@Test
+	void shouldRejectReconstitutionLastNameLongerThan100Characters() {
+
+		String lastName = "A".repeat(101);
+
+		assertThrows(IllegalArgumentException.class,
+				() -> User.reconstitute(ID, EMAIL, PASSWORD_HASH, FIRST_NAME, lastName, UserStatus.BLOCKED, NOW, BLOCKED_TIME));
+	}
+
+	@Test
+	void shouldReconstituteAcceptNameWithExactly100Characters() {
+
+		String name = "A".repeat(100);
+
+		final User user = User.reconstitute(ID, EMAIL, PASSWORD_HASH, name, name, UserStatus.ACTIVE, NOW, BLOCKED_TIME);
+
+		assertEquals(name, user.getFirstName());
+		assertEquals(name, user.getLastName());
+	}
+
+	@Test
+	void shouldReconstituteTrimNames() {
+		User user = reconstituteUser();
+
+		assertEquals("TestFirstname", user.getFirstName());
+		assertEquals("TestLastname", user.getLastName());
+	}
+
+	// endregion
+
 	// region User Activation
 
 	@Test
@@ -189,7 +281,7 @@ class UserTest {
 		assertEquals(UserStatus.ACTIVE, user.getStatus());
 		assertEquals(UNBLOCKED_TIME, user.getUpdatedAt());
 	}
-	
+
 	@Test
 	void shouldRejectUnlockWhenUserIsNotBlocked() {
 
@@ -206,8 +298,8 @@ class UserTest {
 
 		assertThrows(NullPointerException.class, () -> user.unblock(null));
 	}
-	
-	//endregion
+
+	// endregion
 
 	// region Timestamp Rules
 
@@ -237,7 +329,7 @@ class UserTest {
 		assertEquals(UserStatus.PENDING_VERIFICATION, user.getStatus());
 		assertEquals(NOW, user.getUpdatedAt());
 	}
-	
+
 	// endregion
 
 	// region Equality & HashCode
@@ -266,7 +358,7 @@ class UserTest {
 		User user = createUser();
 
 		assertNotEquals(user, null);
-	}	
+	}
 
 	@Test
 	void shouldRejectFirstNameLongerThan100Characters() {
@@ -276,22 +368,27 @@ class UserTest {
 		assertThrows(IllegalArgumentException.class,
 				() -> User.register(ID, EMAIL, PASSWORD_HASH, firstName, LAST_NAME, NOW));
 	}
-	
+
 	@Test
 	void shouldAcceptTransitionAtExactlyLastUpdateTime() {
 
-	    User user = createUser();
+		User user = createUser();
 
-	    user.activate(ACTIVATION_TIME);
+		user.activate(ACTIVATION_TIME);
 
-	    user.block(ACTIVATION_TIME);
+		user.block(ACTIVATION_TIME);
 
-	    assertEquals(UserStatus.BLOCKED, user.getStatus());
+		assertEquals(UserStatus.BLOCKED, user.getStatus());
 
-	    assertEquals(ACTIVATION_TIME, user.getUpdatedAt());
+		assertEquals(ACTIVATION_TIME, user.getUpdatedAt());
 	}
-	
+
 	private User createUser() {
 		return User.register(ID, EMAIL, PASSWORD_HASH, FIRST_NAME, LAST_NAME, NOW);
+	}
+
+	private User reconstituteUser() {
+		return User.reconstitute(ID, EMAIL, PASSWORD_HASH, FIRST_NAME, LAST_NAME, UserStatus.ACTIVE, NOW,
+				ACTIVATION_TIME);
 	}
 }

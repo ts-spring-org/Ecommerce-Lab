@@ -14,6 +14,7 @@ release.properties
 .settings/
 .metadata/
 .recommenders/
+.factorypath
 
 # Spring Boot
 *.log
@@ -55,7 +56,6 @@ temp/
 
 # Generated files
 generated/
-out/
 
 # Maven Wrapper
 .mvn/wrapper/maven-wrapper.jar
@@ -72,5 +72,4 @@ application-dev.properties
 *.keystore
 secret.properties
 
-bin/
-.factorypath
+Identity/bin/

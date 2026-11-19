@@ -1,21 +1,33 @@
 spring:
   application:
-    name: Identity-Service
+    name: identity-service
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/identity_db
-    username: postgres
-    password: secret
+    url: ${IDENTITY_DB_URL}
+    username: ${IDENTITY_DB_USERNAME}
+    password: ${IDENTITY_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
+
 server:
   port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never

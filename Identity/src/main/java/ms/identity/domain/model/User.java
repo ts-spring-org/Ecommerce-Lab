@@ -31,9 +31,32 @@ public final class User {
 		this.updatedAt = now;
 	}
 
+	private User(final UUID id, final EmailAddress email, final PasswordHash passwordHash, final String firstName,
+			final String lastName, final UserStatus status, final Instant createdAt, final Instant updatedAt) {
+		this.id = Objects.requireNonNull(id);
+		this.email = Objects.requireNonNull(email);
+		this.passwordHash = Objects.requireNonNull(passwordHash);
+
+		this.firstName = validateName(firstName);
+		this.lastName = validateName(lastName);
+
+		this.status = Objects.requireNonNull(status);
+		this.createdAt = Objects.requireNonNull(createdAt);
+		this.updatedAt = Objects.requireNonNull(updatedAt);
+
+		if (updatedAt.isBefore(createdAt)) {
+			throw new IllegalArgumentException("Updated time cannot be before creation time.");
+		}
+	}
+
 	public static User register(final UUID id, final EmailAddress email, final PasswordHash passwordHash,
 			final String firstName, final String lastName, final Instant now) {
 		return new User(id, email, passwordHash, firstName, lastName, now);
+	}
+
+	public static User reconstitute(UUID id, EmailAddress email, PasswordHash passwordHash, String firstName,
+			String lastName, UserStatus status, Instant createdAt, Instant updatedAt) {
+		return new User(id, email, passwordHash, firstName, lastName, status, createdAt, updatedAt);
 	}
 
 	private static String validateName(final String name) {
