@@ -5,11 +5,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;\nimport ms.identity.application.exception.InvalidRefreshTokenException;
-
+import org.springframework.transaction.annotation.Transactional;
 import ms.identity.application.exception.AuthenticationNotAllowedException;
 import ms.identity.application.exception.InvalidRefreshTokenException;
 import ms.identity.application.port.in.RefreshTokenUseCase;
@@ -27,16 +25,19 @@ public class RefreshTokenService implements RefreshTokenUseCase {
     private final AccessTokenProviderPort accessTokens;
     private final UserRepositoryPort users;
     private final Clock clock;
-    private final Duration refreshTtl;\n    private final Duration accessTtl;
+    private final Duration refreshTtl;
+    private final Duration accessTtl;
 
     public RefreshTokenService(RefreshTokenRepositoryPort tokens, RefreshTokenGeneratorPort generator,
             AccessTokenProviderPort accessTokens, UserRepositoryPort users, Clock clock,
-            @Value("${identity.security.refresh-token.ttl}") Duration refreshTtl) {
+            @Value("${identity.security.refresh-token.ttl}") Duration refreshTtl,
+            @Value("${identity.security.jwt.access-token-ttl}") Duration accessTtl) {
         this.tokens=tokens; this.generator=generator; this.accessTokens=accessTokens;
         this.users=users; this.clock=clock; this.refreshTtl=refreshTtl; this.accessTtl=accessTtl;
     }
 
-    @Override @Transactional(noRollbackFor = {InvalidRefreshTokenException.class, AuthenticationNotAllowedException.class})
+    @Override
+    @Transactional(noRollbackFor = {InvalidRefreshTokenException.class, AuthenticationNotAllowedException.class})
     public TokenPair refresh(String rawRefreshToken, String expectedClientType) {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) throw new InvalidRefreshTokenException();
         String client=LoginService.normalizeClient(expectedClientType);
@@ -48,9 +49,8 @@ public class RefreshTokenService implements RefreshTokenUseCase {
             tokens.revokeFamily(stored.familyId(),now);
             throw new InvalidRefreshTokenException();
         }
-        if (!stored.expiresAt().isAfter(now) || !stored.clientType().equals(client)) {
+        if (!stored.expiresAt().isAfter(now) || !stored.clientType().equals(client))
             throw new InvalidRefreshTokenException();
-        }
 
         var user=users.findById(stored.userId()).orElseThrow(InvalidRefreshTokenException::new);
         if (user.getStatus()!=UserStatus.ACTIVE) {
