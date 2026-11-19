@@ -60,9 +60,11 @@ public class RefreshTokenService implements RefreshTokenUseCase {
 
         UUID replacementId=UUID.randomUUID();
         String replacement=generator.generate();
-        tokens.consume(stored.id(),now,replacementId);
+        // Insert the replacement first because replaced_by_token_id has an immediate self-FK.
+        // Both writes are in this transaction, so a failed consume rolls the insert back.
         tokens.insert(replacementId,user.getId(),stored.familyId(),generator.hash(replacement),
                 client,now,now.plus(refreshTtl));
+        tokens.consume(stored.id(),now,replacementId);
         return new TokenPair(accessTokens.issue(user.getId(), List.of("ROLE_USER")),replacement,accessTtl.toSeconds());
     }
 }
