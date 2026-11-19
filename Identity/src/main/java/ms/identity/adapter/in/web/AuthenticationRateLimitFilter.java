@@ -7,11 +7,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ms.identity.adapter.out.security.JdbcAuthenticationRateLimiter;
 
-@Component
 public class AuthenticationRateLimitFilter extends OncePerRequestFilter {
     private final JdbcAuthenticationRateLimiter limiter;
     public AuthenticationRateLimitFilter(JdbcAuthenticationRateLimiter limiter) { this.limiter=limiter; }
@@ -20,12 +18,9 @@ public class AuthenticationRateLimitFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         if (!"POST".equalsIgnoreCase(request.getMethod())) return true;
         String path=request.getRequestURI();
-        return !(path.equals("/api/v1/auth/login")
-                || path.equals("/api/v1/auth/mobile/login")
-                || path.equals("/api/v1/auth/register")
-                || path.equals("/api/v1/auth/refresh")
-                || path.equals("/api/v1/auth/mobile/refresh")
-                || path.equals("/api/v1/auth/verify-email")
+        return !(path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/mobile/login")
+                || path.equals("/api/v1/auth/register") || path.equals("/api/v1/auth/refresh")
+                || path.equals("/api/v1/auth/mobile/refresh") || path.equals("/api/v1/auth/verify-email")
                 || path.equals("/api/v1/auth/resend-verification"));
     }
 
