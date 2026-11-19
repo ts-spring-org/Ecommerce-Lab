@@ -8,7 +8,6 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ms.identity.application.exception.AuthenticationNotAllowedException;
 import ms.identity.application.exception.InvalidRefreshTokenException;
 import ms.identity.application.port.in.RefreshTokenUseCase;
 import ms.identity.application.port.out.AccessTokenProviderPort;
@@ -37,7 +36,7 @@ public class RefreshTokenService implements RefreshTokenUseCase {
     }
 
     @Override
-    @Transactional(noRollbackFor = {InvalidRefreshTokenException.class, AuthenticationNotAllowedException.class})
+    @Transactional(noRollbackFor = InvalidRefreshTokenException.class)
     public TokenPair refresh(String rawRefreshToken, String expectedClientType) {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) throw new InvalidRefreshTokenException();
         String client=LoginService.normalizeClient(expectedClientType);
@@ -55,7 +54,7 @@ public class RefreshTokenService implements RefreshTokenUseCase {
         var user=users.findById(stored.userId()).orElseThrow(InvalidRefreshTokenException::new);
         if (user.getStatus()!=UserStatus.ACTIVE) {
             tokens.revokeFamily(stored.familyId(),now);
-            throw new AuthenticationNotAllowedException();
+            throw new InvalidRefreshTokenException();
         }
 
         UUID replacementId=UUID.randomUUID();
