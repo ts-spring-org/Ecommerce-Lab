@@ -20,5 +20,7 @@ identity:
       cookie-same-site: Lax
   email-verification:
     frontend-base-url: http://localhost:3000
+  rate-limit:
+    enabled: false
   outbox:
     enabled: false
