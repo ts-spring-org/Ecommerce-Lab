@@ -89,7 +89,7 @@ public class AuthController {
         return ResponseEntity.accepted().build();
     }
 
-    private ResponseCookie refreshCookie(String token,Duration maxAge) {
+    @GetMapping("/me")\n    public java.util.Map<String,Object> me(@org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.oauth2.jwt.Jwt jwt) {\n        return java.util.Map.of("userId",jwt.getSubject(),"roles",jwt.getClaimAsStringList("roles"));\n    }\n\n    private ResponseCookie refreshCookie(String token,Duration maxAge) {
         return ResponseCookie.from("refresh_token",token).httpOnly(true).secure(cookieSecure)
                 .sameSite(sameSite).path("/api/v1/auth").maxAge(maxAge).build();
     }
