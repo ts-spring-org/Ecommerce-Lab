@@ -36,7 +36,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
         UUID userId=UUID.fromString(registration.getBody().get("id").toString());
 
         ResponseEntity<String> before=mobileLoginError(email,password);
-        assertEquals(FORBIDDEN,before.getStatusCode());
+        assertEquals(UNAUTHORIZED,before.getStatusCode());
 
         String verificationUrl=jdbc.queryForObject(
                 "SELECT payload->>'verificationUrl' FROM outbox_events WHERE aggregate_id=? ORDER BY occurred_at DESC LIMIT 1",
