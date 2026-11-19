@@ -30,7 +30,8 @@ public class SecurityConfiguration {
 
         return http.cors(Customizer.withDefaults())
                 .csrf(csrf->csrf.csrfTokenRepository(csrfRepository)
-                        .ignoringRequestMatchers("/api/v1/auth/mobile/**"))
+                        .ignoringRequestMatchers("/api/v1/auth/register","/api/v1/auth/verify-email",
+                                "/api/v1/auth/resend-verification","/api/v1/auth/mobile/**"))
                 .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize->authorize
                         .requestMatchers("/api/v1/auth/csrf").permitAll()
