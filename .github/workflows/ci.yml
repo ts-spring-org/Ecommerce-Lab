@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - develop
+      - "feature/**"
 
 permissions:
   contents: read
@@ -17,6 +18,7 @@ jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -31,3 +33,11 @@ jobs:
 
       - name: Build and Verify
         run: mvn -B clean verify
+
+      - name: Upload Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: "**/target/surefire-reports/"
+          if-no-files-found: ignore
