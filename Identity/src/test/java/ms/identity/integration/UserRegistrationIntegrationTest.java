@@ -17,6 +17,7 @@ import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -73,6 +74,16 @@ class UserRegistrationIntegrationTest extends AbstractIntegrationTest {
 		final ResponseEntity<String> response = registerForError("invalid-email", "short");
 
 		assertEquals(response.getStatusCode(), BAD_REQUEST);
+	}
+
+	@Test
+	void shouldRejectPasswordExceeding72Utf8Bytes() {
+		final String email = uniqueEmail();
+		final String password = "a".repeat(73);
+
+		final ResponseEntity<String> response = registerForError(email, password);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 	}
 
 	private ResponseEntity<RegisterUserResponse> register(final String email, final String password) {
