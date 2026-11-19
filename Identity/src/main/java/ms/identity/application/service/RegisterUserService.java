@@ -3,8 +3,6 @@ package ms.identity.application.service;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ms.identity.application.command.RegisterUserCommand;
 import ms.identity.application.exception.EmailAlreadyRegisteredException;
@@ -17,7 +15,6 @@ import ms.identity.domain.model.EmailAddress;
 import ms.identity.domain.model.PasswordHash;
 import ms.identity.domain.model.User;
 
-@Service
 public class RegisterUserService implements RegisterUserUseCase {
     private final PasswordHasherPort passwordHasher;
     private final UserRepositoryPort users;
@@ -27,8 +24,6 @@ public class RegisterUserService implements RegisterUserUseCase {
     public RegisterUserService(PasswordHasherPort passwordHasher,UserRepositoryPort users,Clock clock) {
         this(passwordHasher,users,clock,user -> {});
     }
-
-    @Autowired
     public RegisterUserService(PasswordHasherPort passwordHasher,UserRepositoryPort users,Clock clock,
             VerificationEmailRequestPort verificationRequests) {
         this.passwordHasher=passwordHasher; this.users=users; this.clock=clock;
