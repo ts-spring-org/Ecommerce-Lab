@@ -4,7 +4,7 @@ import java.time.Clock;
 import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ms.identity.application.exception.InvalidRefreshTokenException;
+import ms.identity.application.exception.InvalidVerificationTokenException;
 import ms.identity.application.port.in.VerifyEmailUseCase;
 import ms.identity.application.port.out.EmailVerificationRepositoryPort;
 import ms.identity.application.port.out.RefreshTokenGeneratorPort;
@@ -25,15 +25,15 @@ public class VerifyEmailService implements VerifyEmailUseCase {
 
     @Override @Transactional
     public void verify(String rawToken) {
-        if(rawToken==null || rawToken.isBlank()) throw new InvalidRefreshTokenException();
+        if(rawToken==null || rawToken.isBlank()) throw new InvalidVerificationTokenException();
         Instant now=Instant.now(clock);
         var token=tokens.findByHashForUpdate(generator.hash(rawToken))
-                .orElseThrow(InvalidRefreshTokenException::new);
+                .orElseThrow(InvalidVerificationTokenException::new);
         if(token.consumedAt()!=null || !token.expiresAt().isAfter(now))
-            throw new InvalidRefreshTokenException();
-        var user=users.findById(token.userId()).orElseThrow(InvalidRefreshTokenException::new);
+            throw new InvalidVerificationTokenException();
+        var user=users.findById(token.userId()).orElseThrow(InvalidVerificationTokenException::new);
         if(user.getStatus()!=UserStatus.PENDING_VERIFICATION)
-            throw new InvalidRefreshTokenException();
+            throw new InvalidVerificationTokenException();
         tokens.consume(token.id(),now);
         user.activate(now);
         users.save(user);
