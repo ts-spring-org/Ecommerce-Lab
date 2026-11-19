@@ -49,7 +49,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void mobileLoginRefreshRotationAndReuseDetectionRevokeEntireFamily() {
+    void mobileLoginRefreshRotationAndReuseDetectionRevokeEntireFamily() throws Exception {
         String email=uniqueEmail(), password="StrongPassword123";
         UUID userId=registerAndActivate(email,password);
 
