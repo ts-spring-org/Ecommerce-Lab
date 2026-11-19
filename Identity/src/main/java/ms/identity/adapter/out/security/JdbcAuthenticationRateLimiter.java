@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.Instant;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @Component
 public class JdbcAuthenticationRateLimiter {
@@ -39,6 +40,9 @@ public class JdbcAuthenticationRateLimiter {
                 Timestamp.from(now),300L,Timestamp.from(now));
         return blockedUntil==null || !blockedUntil.toInstant().isAfter(now);
     }
+
+    @Scheduled(cron = "0 15 3 * * *")
+    public void cleanupOldBuckets() { deleteExpired(Instant.now().minus(Duration.ofDays(2))); }
 
     public int deleteExpired(Instant cutoff) {
         return jdbc.update("DELETE FROM auth_rate_limits WHERE updated_at < ?",Timestamp.from(cutoff));
