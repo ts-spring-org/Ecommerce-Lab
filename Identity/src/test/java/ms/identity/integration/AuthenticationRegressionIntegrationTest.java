@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.*;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Map;
@@ -17,11 +19,13 @@ import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import ms.identity.application.results.TokenPair;
+import ms.identity.adapter.out.security.JdbcAuthenticationRateLimiter;
 
 @AutoConfigureTestRestTemplate
 class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
     @Autowired private TestRestTemplate rest;
     @Autowired private JdbcTemplate jdbc;
+    @Autowired private JdbcAuthenticationRateLimiter rateLimiter;
 
     @Test
     void pendingAccountCannotLoginAndVerificationActivatesItExactlyOnce() throws Exception {
@@ -172,6 +176,18 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
         return java.util.Arrays.stream(setCookie.split(";"))
                 .map(String::trim).filter(value->value.startsWith(name+"="))
                 .findFirst().orElseThrow();
+    }
+
+
+    @Test
+    void persistentRateLimiterBlocksAfterConfiguredAttemptsAndResetsWindow() {
+        String key="regression:"+UUID.randomUUID();
+        Instant start=Instant.parse("2026-11-20T10:00:00Z");
+        assertTrue(rateLimiter.allow(key,start,2,Duration.ofMinutes(15)));
+        assertTrue(rateLimiter.allow(key,start.plusSeconds(1),2,Duration.ofMinutes(15)));
+        assertFalse(rateLimiter.allow(key,start.plusSeconds(2),2,Duration.ofMinutes(15)));
+        assertFalse(rateLimiter.allow(key,start.plusSeconds(3),2,Duration.ofMinutes(15)));
+        assertTrue(rateLimiter.allow(key,start.plusSeconds(901),2,Duration.ofMinutes(15)));
     }
 
     private UUID registerAndActivate(String email,String password) {
