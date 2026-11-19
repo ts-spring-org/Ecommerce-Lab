@@ -5,11 +5,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import ms.identity.application.command.LoginCommand;
 import ms.identity.application.exception.AuthenticationNotAllowedException;
 import ms.identity.application.exception.InvalidCredentialsException;
@@ -32,12 +30,14 @@ public class LoginService implements LoginUseCase {
     private final RefreshTokenGeneratorPort refreshTokens;
     private final RefreshTokenRepositoryPort refreshRepository;
     private final Clock clock;
-    private final Duration refreshTtl;\n    private final Duration accessTtl;
+    private final Duration refreshTtl;
+    private final Duration accessTtl;
 
     public LoginService(UserRepositoryPort users, PasswordHasherPort passwords,
             AccessTokenProviderPort accessTokens, RefreshTokenGeneratorPort refreshTokens,
             RefreshTokenRepositoryPort refreshRepository, Clock clock,
-            @Value("${identity.security.refresh-token.ttl}") Duration refreshTtl) {
+            @Value("${identity.security.refresh-token.ttl}") Duration refreshTtl,
+            @Value("${identity.security.jwt.access-token-ttl}") Duration accessTtl) {
         this.users=users; this.passwords=passwords; this.accessTokens=accessTokens;
         this.refreshTokens=refreshTokens; this.refreshRepository=refreshRepository;
         this.clock=clock; this.refreshTtl=refreshTtl; this.accessTtl=accessTtl;
