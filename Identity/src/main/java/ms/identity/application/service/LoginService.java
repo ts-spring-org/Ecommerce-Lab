@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ms.identity.application.command.LoginCommand;
-import ms.identity.application.exception.AuthenticationNotAllowedException;
 import ms.identity.application.exception.InvalidCredentialsException;
 import ms.identity.application.port.in.LoginUseCase;
 import ms.identity.application.port.out.AccessTokenProviderPort;
@@ -50,7 +49,7 @@ public class LoginService implements LoginUseCase {
                 .orElseThrow(InvalidCredentialsException::new);
         if (!passwords.matches(command.password(), user.getPasswordHash().encodedValue()))
             throw new InvalidCredentialsException();
-        if (user.getStatus() != UserStatus.ACTIVE) throw new AuthenticationNotAllowedException();
+        if (user.getStatus() != UserStatus.ACTIVE) throw new InvalidCredentialsException();
 
         Instant now=Instant.now(clock);
         UUID family=UUID.randomUUID(), id=UUID.randomUUID();
