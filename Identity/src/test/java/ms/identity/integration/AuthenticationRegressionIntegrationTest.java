@@ -179,6 +179,19 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
     }
 
 
+
+    @Test
+    void protectedEndpointRejectsMissingAndMalformedAccessTokens() {
+        ResponseEntity<String> missing=rest.getForEntity("/api/v1/auth/me",String.class);
+        assertEquals(UNAUTHORIZED,missing.getStatusCode());
+
+        HttpHeaders headers=new HttpHeaders();
+        headers.setBearerAuth("not-a-valid-jwt");
+        ResponseEntity<String> malformed=rest.exchange("/api/v1/auth/me",HttpMethod.GET,
+                new HttpEntity<>(headers),String.class);
+        assertEquals(UNAUTHORIZED,malformed.getStatusCode());
+    }
+
     @Test
     void persistentRateLimiterBlocksAfterConfiguredAttemptsAndResetsWindow() {
         String key="regression:"+UUID.randomUUID();
