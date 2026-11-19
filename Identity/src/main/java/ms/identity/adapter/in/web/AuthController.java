@@ -12,7 +12,7 @@ import ms.identity.adapter.in.web.dtos.LoginRequest;
 import ms.identity.application.command.LoginCommand;
 import ms.identity.application.port.in.LoginUseCase;
 import ms.identity.application.port.in.LogoutUseCase;
-import ms.identity.application.port.in.RefreshTokenUseCase;
+import ms.identity.application.port.in.RefreshTokenUseCase;\nimport ms.identity.application.port.in.VerifyEmailUseCase;\nimport ms.identity.application.port.in.ResendVerificationEmailUseCase;\nimport ms.identity.adapter.in.web.dtos.VerifyEmailRequest;\nimport ms.identity.adapter.in.web.dtos.ResendVerificationRequest;
 import ms.identity.application.results.TokenPair;
 
 @RestController
@@ -21,15 +21,15 @@ public class AuthController {
     private final LoginUseCase login;
     private final RefreshTokenUseCase refresh;
     private final LogoutUseCase logout;
-    private final Duration refreshTtl;
+    private final Duration refreshTtl;\n    private final VerifyEmailUseCase verifyEmail;\n    private final ResendVerificationEmailUseCase resendVerification;
     private final boolean cookieSecure;
     private final String sameSite;
 
-    public AuthController(LoginUseCase login, RefreshTokenUseCase refresh, LogoutUseCase logout,
+    public AuthController(LoginUseCase login, RefreshTokenUseCase refresh, LogoutUseCase logout,\n            VerifyEmailUseCase verifyEmail, ResendVerificationEmailUseCase resendVerification,
             @Value("${identity.security.refresh-token.ttl}") Duration refreshTtl,
             @Value("${identity.security.web.cookie-secure:true}") boolean cookieSecure,
             @Value("${identity.security.web.cookie-same-site:Lax}") String sameSite) {
-        this.login=login; this.refresh=refresh; this.logout=logout;
+        this.login=login; this.refresh=refresh; this.logout=logout;\n        this.verifyEmail=verifyEmail; this.resendVerification=resendVerification;
         this.refreshTtl=refreshTtl; this.cookieSecure=cookieSecure; this.sameSite=sameSite;
     }
 
@@ -69,7 +69,7 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    private ResponseCookie refreshCookie(String token, Duration maxAge) {
+    @PostMapping("/verify-email")\n    public ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {\n        verifyEmail.verify(request.token());\n        return ResponseEntity.noContent().build();\n    }\n\n    @PostMapping("/resend-verification")\n    public ResponseEntity<Void> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {\n        resendVerification.resend(request.email());\n        return ResponseEntity.accepted().build();\n    }\n\n    private ResponseCookie refreshCookie(String token, Duration maxAge) {
         return ResponseCookie.from("refresh_token",token)
                 .httpOnly(true).secure(cookieSecure).sameSite(sameSite)
                 .path("/api/v1/auth").maxAge(maxAge).build();
