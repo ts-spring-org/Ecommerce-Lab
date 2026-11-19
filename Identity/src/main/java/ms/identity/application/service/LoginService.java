@@ -32,7 +32,7 @@ public class LoginService implements LoginUseCase {
     private final RefreshTokenGeneratorPort refreshTokens;
     private final RefreshTokenRepositoryPort refreshRepository;
     private final Clock clock;
-    private final Duration refreshTtl;
+    private final Duration refreshTtl;\n    private final Duration accessTtl;
 
     public LoginService(UserRepositoryPort users, PasswordHasherPort passwords,
             AccessTokenProviderPort accessTokens, RefreshTokenGeneratorPort refreshTokens,
@@ -40,7 +40,7 @@ public class LoginService implements LoginUseCase {
             @Value("${identity.security.refresh-token.ttl}") Duration refreshTtl) {
         this.users=users; this.passwords=passwords; this.accessTokens=accessTokens;
         this.refreshTokens=refreshTokens; this.refreshRepository=refreshRepository;
-        this.clock=clock; this.refreshTtl=refreshTtl;
+        this.clock=clock; this.refreshTtl=refreshTtl; this.accessTtl=accessTtl;
     }
 
     @Override @Transactional
@@ -56,7 +56,7 @@ public class LoginService implements LoginUseCase {
         UUID family=UUID.randomUUID(), id=UUID.randomUUID();
         String raw=refreshTokens.generate();
         refreshRepository.insert(id,user.getId(),family,refreshTokens.hash(raw),client,now,now.plus(refreshTtl));
-        return new TokenPair(accessTokens.issue(user.getId(), List.of("ROLE_USER")),raw,900);
+        return new TokenPair(accessTokens.issue(user.getId(), List.of("ROLE_USER")),raw,accessTtl.toSeconds());
     }
 
     static String normalizeClient(String client) {
