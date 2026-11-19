@@ -20,8 +20,35 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
+
 server:
   port: 8081
+  forward-headers-strategy: framework
+
+identity:
+  security:
+    jwt:
+      issuer: ${IDENTITY_JWT_ISSUER:http://localhost:8081}
+      audience: ${IDENTITY_JWT_AUDIENCE:ecommerce-api}
+      access-token-ttl: ${IDENTITY_ACCESS_TOKEN_TTL:PT15M}
+      # Base64-encoded DER keys: PKCS#8 private key and X.509 public key.
+      private-key: ${IDENTITY_JWT_PRIVATE_KEY:}
+      public-key: ${IDENTITY_JWT_PUBLIC_KEY:}
+    refresh-token:
+      ttl: ${IDENTITY_REFRESH_TOKEN_TTL:P30D}
+    web:
+      allowed-origins: ${IDENTITY_WEB_ALLOWED_ORIGINS:http://localhost:3000}
 
 management:
   endpoints:
