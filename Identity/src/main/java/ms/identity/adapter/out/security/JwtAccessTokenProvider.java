@@ -1,5 +1,6 @@
 package ms.identity.adapter.out.security;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -15,16 +16,19 @@ import ms.identity.application.port.out.AccessTokenProviderPort;
 @Component
 public class JwtAccessTokenProvider implements AccessTokenProviderPort {
     private final JwtEncoder encoder;
+    private final Clock clock;
     private final String issuer;
     private final String audience;
     private final long accessTokenTtlSeconds;
 
     public JwtAccessTokenProvider(
             JwtEncoder encoder,
+            Clock clock,
             @Value("${identity.security.jwt.issuer}") String issuer,
             @Value("${identity.security.jwt.audience}") String audience,
             @Value("${identity.security.jwt.access-token-ttl}") java.time.Duration accessTokenTtl) {
         this.encoder = encoder;
+        this.clock = clock;
         this.issuer = issuer;
         this.audience = audience;
         this.accessTokenTtlSeconds = accessTokenTtl.toSeconds();
@@ -35,7 +39,7 @@ public class JwtAccessTokenProvider implements AccessTokenProviderPort {
 
     @Override
     public String issue(UUID userId, List<String> authorities) {
-        Instant now = Instant.now();
+        Instant now = Instant.now(clock);
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer(issuer)
                 .subject(userId.toString())
