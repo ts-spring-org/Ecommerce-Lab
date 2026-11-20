@@ -17,8 +17,8 @@ public class JdbcEmailVerificationRepository implements EmailVerificationReposit
 
 	@Override
 	public void invalidateOutstanding(final UUID userId, final Instant at) {
-		jdbc.update("UPDATE email_verification_tokens SET consumed_at=? WHERE user_id=? AND consumed_at IS NULL", at,
-				userId);
+		jdbc.update("UPDATE email_verification_tokens SET consumed_at=? WHERE user_id=? AND consumed_at IS NULL",
+				JdbcConverters.toTimestamp(at), userId);
 	}
 
 	@Override
@@ -26,7 +26,7 @@ public class JdbcEmailVerificationRepository implements EmailVerificationReposit
 			final Instant expires) {
 		jdbc.update(
 				"INSERT INTO email_verification_tokens (id,user_id,token_hash,created_at,expires_at) VALUES (?,?,?,?,?)",
-				id, userId, hash, created, expires);
+				id, userId, hash, JdbcConverters.toTimestamp(created), JdbcConverters.toTimestamp(expires));
 	}
 
 	@Override
@@ -42,7 +42,7 @@ public class JdbcEmailVerificationRepository implements EmailVerificationReposit
 	@Override
 	public void consume(final UUID id, final Instant at) {
 		int rows = jdbc.update("UPDATE email_verification_tokens SET consumed_at=? WHERE id=? AND consumed_at IS NULL",
-				at, id);
+				JdbcConverters.toTimestamp(at), id);
 		if (rows != 1)
 			throw new IllegalStateException("Verification token was already consumed");
 	}

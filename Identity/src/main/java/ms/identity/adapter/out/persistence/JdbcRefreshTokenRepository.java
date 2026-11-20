@@ -34,7 +34,8 @@ public class JdbcRefreshTokenRepository implements RefreshTokenRepositoryPort {
 			final String clientType, final Instant createdAt, final Instant expiresAt) {
 		jdbc.update(
 				"INSERT INTO refresh_tokens (id,user_id,family_id,token_hash,client_type,created_at,expires_at) VALUES (?,?,?,?,?,?,?)",
-				id, userId, familyId, tokenHash, clientType, createdAt, expiresAt);
+				id, userId, familyId, tokenHash, clientType, JdbcConverters.toTimestamp(createdAt),
+				JdbcConverters.toTimestamp(expiresAt));
 	}
 
 	@Override
@@ -48,18 +49,20 @@ public class JdbcRefreshTokenRepository implements RefreshTokenRepositoryPort {
 	public void consume(final UUID id, final Instant at, final UUID replacementId) {
 		int rows = jdbc.update(
 				"UPDATE refresh_tokens SET consumed_at=?,replaced_by_token_id=? WHERE id=? AND consumed_at IS NULL AND revoked_at IS NULL",
-				at, replacementId, id);
+				JdbcConverters.toTimestamp(at), replacementId, id);
 		if (rows != 1)
 			throw new IllegalStateException("Refresh token is no longer active");
 	}
 
 	@Override
 	public void revokeFamily(final UUID familyId, final Instant at) {
-		jdbc.update("UPDATE refresh_tokens SET revoked_at=? WHERE family_id=? AND revoked_at IS NULL", at, familyId);
+		jdbc.update("UPDATE refresh_tokens SET revoked_at=? WHERE family_id=? AND revoked_at IS NULL",
+				JdbcConverters.toTimestamp(at), familyId);
 	}
 
 	@Override
 	public void revokeAllForUser(final UUID userId, final Instant at) {
-		jdbc.update("UPDATE refresh_tokens SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL", at, userId);
+		jdbc.update("UPDATE refresh_tokens SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL",
+				JdbcConverters.toTimestamp(at), userId);
 	}
 }
