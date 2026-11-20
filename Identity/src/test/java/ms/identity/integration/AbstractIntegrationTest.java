@@ -13,7 +13,6 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @ActiveProfiles("test")
 public abstract class AbstractIntegrationTest {
 
-	
 	@Container
     @ServiceConnection
     static final PostgreSQLContainer POSTGRES =

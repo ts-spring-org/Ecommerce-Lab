@@ -52,8 +52,8 @@ public class UserJpaEntity {
 	public UserJpaEntity() {
 	}
 
-	public UserJpaEntity(UUID id, String email, String passwordHash, String firstName, String lastName,
-			UserStatus status, Instant createdAt, Instant updatedAt) {
+	public UserJpaEntity(final UUID id, final String email, final String passwordHash, final String firstName, final String lastName,
+			final UserStatus status, final Instant createdAt, final Instant updatedAt) {
 		super();
 		this.id = id;
 		this.email = email;
@@ -97,5 +97,4 @@ public class UserJpaEntity {
 		return updatedAt;
 	}
 
-	
 }

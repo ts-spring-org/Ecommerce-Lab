@@ -23,46 +23,52 @@ import ms.identity.domain.model.UserStatus;
 
 @Service
 public class LoginService implements LoginUseCase {
-    private final UserRepositoryPort users;
-    private final PasswordHasherPort passwords;
-    private final AccessTokenProviderPort accessTokens;
-    private final RefreshTokenGeneratorPort refreshTokens;
-    private final RefreshTokenRepositoryPort refreshRepository;
-    private final Clock clock;
-    private final Duration refreshTtl;
-    private final Duration accessTtl;
+	private final UserRepositoryPort users;
+	private final PasswordHasherPort passwords;
+	private final AccessTokenProviderPort accessTokens;
+	private final RefreshTokenGeneratorPort refreshTokens;
+	private final RefreshTokenRepositoryPort refreshRepository;
+	private final Clock clock;
+	private final Duration refreshTtl;
+	private final Duration accessTtl;
 
-    public LoginService(UserRepositoryPort users, PasswordHasherPort passwords,
-            AccessTokenProviderPort accessTokens, RefreshTokenGeneratorPort refreshTokens,
-            RefreshTokenRepositoryPort refreshRepository, Clock clock,
-            @Value("${identity.security.refresh-token.ttl}") Duration refreshTtl,
-            @Value("${identity.security.jwt.access-token-ttl}") Duration accessTtl) {
-        this.users=users; this.passwords=passwords; this.accessTokens=accessTokens;
-        this.refreshTokens=refreshTokens; this.refreshRepository=refreshRepository;
-        this.clock=clock; this.refreshTtl=refreshTtl; this.accessTtl=accessTtl;
-    }
+	public LoginService(final UserRepositoryPort users, final PasswordHasherPort passwords, final AccessTokenProviderPort accessTokens,
+			RefreshTokenGeneratorPort refreshTokens, RefreshTokenRepositoryPort refreshRepository, Clock clock,
+			@Value("${identity.security.refresh-token.ttl}") Duration refreshTtl,
+			@Value("${identity.security.jwt.access-token-ttl}") Duration accessTtl) {
+		this.users = users;
+		this.passwords = passwords;
+		this.accessTokens = accessTokens;
+		this.refreshTokens = refreshTokens;
+		this.refreshRepository = refreshRepository;
+		this.clock = clock;
+		this.refreshTtl = refreshTtl;
+		this.accessTtl = accessTtl;
+	}
 
-    @Override @Transactional
-    public TokenPair login(LoginCommand command) {
-        String client = normalizeClient(command.clientType());
-        User user = users.findByEmail(EmailAddress.of(command.email()))
-                .orElseThrow(InvalidCredentialsException::new);
-        if (!passwords.matches(command.password(), user.getPasswordHash().encodedValue()))
-            throw new InvalidCredentialsException();
-        if (user.getStatus() != UserStatus.ACTIVE) throw new InvalidCredentialsException();
+	@Override
+	@Transactional
+	public TokenPair login(final LoginCommand command) {
+		String client = normalizeClient(command.clientType());
+		User user = users.findByEmail(EmailAddress.of(command.email())).orElseThrow(InvalidCredentialsException::new);
+		if (!passwords.matches(command.password(), user.getPasswordHash().encodedValue()))
+			throw new InvalidCredentialsException();
+		if (user.getStatus() != UserStatus.ACTIVE)
+			throw new InvalidCredentialsException();
 
-        Instant now=Instant.now(clock);
-        UUID family=UUID.randomUUID(), id=UUID.randomUUID();
-        String raw=refreshTokens.generate();
-        refreshRepository.insert(id,user.getId(),family,refreshTokens.hash(raw),client,now,now.plus(refreshTtl));
-        return new TokenPair(accessTokens.issue(user.getId(), List.of("ROLE_USER")),raw,accessTtl.toSeconds());
-    }
+		Instant now = Instant.now(clock);
+		UUID family = UUID.randomUUID(), id = UUID.randomUUID();
+		String raw = refreshTokens.generate();
+		refreshRepository.insert(id, user.getId(), family, refreshTokens.hash(raw), client, now, now.plus(refreshTtl));
+		return new TokenPair(accessTokens.issue(user.getId(), List.of("ROLE_USER")), raw, accessTtl.toSeconds());
+	}
 
-    static String normalizeClient(String client) {
-        if (client == null) throw new IllegalArgumentException("Client type is required");
-        String normalized=client.trim().toUpperCase(java.util.Locale.ROOT);
-        if (!normalized.equals("WEB") && !normalized.equals("MOBILE"))
-            throw new IllegalArgumentException("Client type must be WEB or MOBILE");
-        return normalized;
-    }
+	static String normalizeClient(final String client) {
+		if (client == null)
+			throw new IllegalArgumentException("Client type is required");
+		String normalized = client.trim().toUpperCase(java.util.Locale.ROOT);
+		if (!normalized.equals("WEB") && !normalized.equals("MOBILE"))
+			throw new IllegalArgumentException("Client type must be WEB or MOBILE");
+		return normalized;
+	}
 }

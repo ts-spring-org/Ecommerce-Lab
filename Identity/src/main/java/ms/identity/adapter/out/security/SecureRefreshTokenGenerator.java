@@ -12,23 +12,22 @@ import ms.identity.application.port.out.RefreshTokenGeneratorPort;
 
 @Component
 public class SecureRefreshTokenGenerator implements RefreshTokenGeneratorPort {
-    private final SecureRandom secureRandom = new SecureRandom();
+	private final SecureRandom secureRandom = new SecureRandom();
 
-    @Override
-    public String generate() {
-        byte[] bytes = new byte[32];
-        secureRandom.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
+	@Override
+	public String generate() {
+		byte[] bytes = new byte[32];
+		secureRandom.nextBytes(bytes);
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+	}
 
-    @Override
-    public String hash(String rawToken) {
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256")
-                    .digest(rawToken.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
-        } catch (Exception exception) {
-            throw new IllegalStateException("SHA-256 is unavailable", exception);
-        }
-    }
+	@Override
+	public String hash(final String rawToken) {
+		try {
+			byte[] digest = MessageDigest.getInstance("SHA-256").digest(rawToken.getBytes(StandardCharsets.UTF_8));
+			return HexFormat.of().formatHex(digest);
+		} catch (Exception exception) {
+			throw new IllegalStateException("SHA-256 is unavailable", exception);
+		}
+	}
 }

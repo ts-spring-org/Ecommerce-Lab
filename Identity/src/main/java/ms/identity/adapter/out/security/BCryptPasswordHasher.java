@@ -13,20 +13,21 @@ public class BCryptPasswordHasher implements PasswordHasherPort {
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(BCRYPT_STRENGTH);
 
     @Override
-    public String hash(String rawPassword) {
+    public String hash(final String rawPassword) {
         Objects.requireNonNull(rawPassword, "Password cannot be null");
         validateLength(rawPassword);
         return encoder.encode(rawPassword);
     }
 
     @Override
-    public boolean matches(String rawPassword, String encodedPassword) {
-        if (rawPassword == null || encodedPassword == null) return false;
-        validateLength(rawPassword);
-        return encoder.matches(rawPassword, encodedPassword);
-    }
+	public boolean matches(final String rawPassword, final String encodedPassword) {
+		if (rawPassword == null || encodedPassword == null)
+			return false;
+		validateLength(rawPassword);
+		return encoder.matches(rawPassword, encodedPassword);
+	}
 
-    private void validateLength(String rawPassword) {
+	private void validateLength(final String rawPassword) {
         if (rawPassword.getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES)
             throw new IllegalArgumentException("Password exceeds maximum allowed length of 72 UTF-8 bytes");
     }

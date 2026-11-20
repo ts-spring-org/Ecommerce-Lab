@@ -10,20 +10,26 @@ import ms.identity.application.port.out.RefreshTokenRepositoryPort;
 
 @Service
 public class LogoutService implements LogoutUseCase {
-    private final RefreshTokenRepositoryPort tokens;
-    private final RefreshTokenGeneratorPort generator;
-    private final Clock clock;
-    public LogoutService(RefreshTokenRepositoryPort tokens, RefreshTokenGeneratorPort generator, Clock clock) {
-        this.tokens=tokens; this.generator=generator; this.clock=clock;
-    }
+	private final RefreshTokenRepositoryPort tokens;
+	private final RefreshTokenGeneratorPort generator;
+	private final Clock clock;
 
-    @Override @Transactional
-    public void logout(String rawRefreshToken, String expectedClientType) {
-        if (rawRefreshToken==null || rawRefreshToken.isBlank()) return;
-        String client=LoginService.normalizeClient(expectedClientType);
-        Instant now=Instant.now(clock);
-        tokens.findByHashForUpdate(generator.hash(rawRefreshToken)).ifPresent(token -> {
-            if (token.clientType().equals(client)) tokens.revokeFamily(token.familyId(),now);
-        });
-    }
+	public LogoutService(final RefreshTokenRepositoryPort tokens, final RefreshTokenGeneratorPort generator, final Clock clock) {
+		this.tokens = tokens;
+		this.generator = generator;
+		this.clock = clock;
+	}
+
+	@Override
+	@Transactional
+	public void logout(final String rawRefreshToken, final String expectedClientType) {
+		if (rawRefreshToken == null || rawRefreshToken.isBlank())
+			return;
+		String client = LoginService.normalizeClient(expectedClientType);
+		Instant now = Instant.now(clock);
+		tokens.findByHashForUpdate(generator.hash(rawRefreshToken)).ifPresent(token -> {
+			if (token.clientType().equals(client))
+				tokens.revokeFamily(token.familyId(), now);
+		});
+	}
 }

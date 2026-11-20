@@ -22,40 +22,34 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
 @Configuration
 public class JwtConfiguration {
-    @Bean
-    RSAPublicKey identityJwtPublicKey(@Value("${identity.security.jwt.public-key}") String encoded) {
-        return RsaKeyLoader.publicKey(encoded);
-    }
+	@Bean
+	RSAPublicKey identityJwtPublicKey(@Value("${identity.security.jwt.public-key}") final String encoded) {
+		return RsaKeyLoader.publicKey(encoded);
+	}
 
-    @Bean
-    RSAPrivateKey identityJwtPrivateKey(@Value("${identity.security.jwt.private-key}") String encoded) {
-        return RsaKeyLoader.privateKey(encoded);
-    }
+	@Bean
+	RSAPrivateKey identityJwtPrivateKey(@Value("${identity.security.jwt.private-key}") final String encoded) {
+		return RsaKeyLoader.privateKey(encoded);
+	}
 
-    @Bean
-    JwtEncoder jwtEncoder(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
-        RSAKey signingKey = new RSAKey.Builder(publicKey)
-                .privateKey(privateKey)
-                .keyID("identity-rsa-1")
-                .build();
-        var jwkSource = new ImmutableJWKSet<SecurityContext>(new JWKSet(signingKey));
-        return new NimbusJwtEncoder(jwkSource);
-    }
+	@Bean
+	JwtEncoder jwtEncoder(final RSAPublicKey publicKey, final RSAPrivateKey privateKey) {
+		RSAKey signingKey = new RSAKey.Builder(publicKey).privateKey(privateKey).keyID("identity-rsa-1").build();
+		var jwkSource = new ImmutableJWKSet<SecurityContext>(new JWKSet(signingKey));
+		return new NimbusJwtEncoder(jwkSource);
+	}
 
-    @Bean
-    JwtDecoder jwtDecoder(
-            RSAPublicKey publicKey,
-            @Value("${identity.security.jwt.issuer}") String issuer,
-            @Value("${identity.security.jwt.audience}") String audience) {
-        NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
-        OAuth2TokenValidator<Jwt> issuerValidator = JwtValidators.createDefaultWithIssuer(issuer);
-        OAuth2TokenValidator<Jwt> audienceValidator = jwt ->
-                jwt.getAudience().contains(audience)
-                        ? org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success()
-                        : org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.failure(
-                                new org.springframework.security.oauth2.core.OAuth2Error(
-                                        "invalid_token", "Required audience is missing", null));
-        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(List.of(issuerValidator, audienceValidator)));
-        return decoder;
-    }
+	@Bean
+	JwtDecoder jwtDecoder(final RSAPublicKey publicKey, @Value("${identity.security.jwt.issuer}") final String issuer,
+			@Value("${identity.security.jwt.audience}") final String audience) {
+		NimbusJwtDecoder decoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
+		OAuth2TokenValidator<Jwt> issuerValidator = JwtValidators.createDefaultWithIssuer(issuer);
+		OAuth2TokenValidator<Jwt> audienceValidator = jwt -> jwt.getAudience().contains(audience)
+				? org.springframework.security.oauth2.core.OAuth2TokenValidatorResult.success()
+				: org.springframework.security.oauth2.core.OAuth2TokenValidatorResult
+						.failure(new org.springframework.security.oauth2.core.OAuth2Error("invalid_token",
+								"Required audience is missing", null));
+		decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(List.of(issuerValidator, audienceValidator)));
+		return decoder;
+	}
 }
