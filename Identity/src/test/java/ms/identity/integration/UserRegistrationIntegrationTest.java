@@ -24,7 +24,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import ms.identity.adapter.in.web.dtos.RegisterUserResponse;
+import ms.identity.adapter.ingress.web.dtos.RegisterUserResponse;
 import ms.identity.domain.model.UserStatus;
 
 @AutoConfigureTestRestTemplate

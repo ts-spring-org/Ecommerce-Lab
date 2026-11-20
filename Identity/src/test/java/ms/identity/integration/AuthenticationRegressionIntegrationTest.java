@@ -20,7 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import ms.identity.application.results.TokenPair;
 import ms.identity.domain.model.UserStatus;
-import ms.identity.adapter.out.security.JdbcAuthenticationRateLimiter;
+import ms.identity.adapter.egress.security.JdbcAuthenticationRateLimiter;
 
 @AutoConfigureTestRestTemplate
 class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
