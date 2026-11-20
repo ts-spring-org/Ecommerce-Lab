@@ -33,7 +33,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
 	
 	private static final String PASSWORD = "StrongPassword123";
 
-	//@Test
+	@Test
 	void pendingAccountCannotLoginAndVerificationActivatesItExactlyOnce() throws Exception {
 		String email = uniqueEmail();
 		String password = PASSWORD;
@@ -62,7 +62,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
 		assertEquals(UNAUTHORIZED, replay.getStatusCode());
 	}
 
-	//@Test
+	@Test
 	void mobileLoginRefreshRotationAndReuseDetectionRevokeEntireFamily() throws Exception {
 		String email = uniqueEmail(), password = PASSWORD;
 		UUID userId = registerAndActivate(email, password);
@@ -107,7 +107,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
 		assertEquals(userId.toString(), me.getBody().get("userId"));
 	}
 
-	//@Test
+	@Test
 	void mobileLogoutRevokesRefreshTokenFamily() {
 		String email = uniqueEmail(), password = PASSWORD;
 		registerAndActivate(email, password);
@@ -126,7 +126,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
 		assertEquals(UNAUTHORIZED, refresh.getStatusCode());
 	}
 
-	//@Test
+	@Test
 	void invalidPasswordDoesNotCreateRefreshSession() {
 		String email = uniqueEmail(), password = PASSWORD;
 		UUID userId = registerAndActivate(email, password);
@@ -136,7 +136,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
 				jdbc.queryForObject("SELECT COUNT(*) FROM refresh_tokens WHERE user_id=?", Integer.class, userId));
 	}
 
-	//@Test
+	@Test
 	void webRefreshCookieIsHttpOnlyAndRotatedWithCsrfProtection() {
 		String email = uniqueEmail(), password = PASSWORD;
 		registerAndActivate(email, password);
@@ -178,7 +178,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
 		assertTrue(logout.getHeaders().getFirst(HttpHeaders.SET_COOKIE).contains("Max-Age=0"));
 	}
 
-	//@Test
+	@Test
 	void persistentRateLimiterBlocksAfterConfiguredAttemptsAndResetsWindow() {
 		String key = "regression:" + UUID.randomUUID();
 		Instant start = Instant.parse("2026-11-20T10:00:00Z");
@@ -188,7 +188,19 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
 		assertFalse(rateLimiter.allow(key, start.plusSeconds(3), 2, Duration.ofMinutes(15)));
 		assertTrue(rateLimiter.allow(key, start.plusSeconds(901), 2, Duration.ofMinutes(15)));
 	}
+	
+    @Test
+    void protectedEndpointRejectsMissingAndMalformedAccessTokens() {
+        ResponseEntity<String> missing=rest.getForEntity("/api/v1/auth/me",String.class);
+        assertEquals(UNAUTHORIZED,missing.getStatusCode());
 
+        HttpHeaders headers=new HttpHeaders();
+        headers.setBearerAuth("not-a-valid-jwt");
+        ResponseEntity<String> malformed=rest.exchange("/api/v1/auth/me",HttpMethod.GET,
+                new HttpEntity<>(headers),String.class);
+        assertEquals(UNAUTHORIZED,malformed.getStatusCode());
+    }
+    
 	private String uniqueEmail() {
 		return "auth-" + UUID.randomUUID() + "@example.com";
 	}
@@ -216,7 +228,7 @@ class AuthenticationRegressionIntegrationTest extends AbstractIntegrationTest {
 		return rest.postForEntity("/api/v1/auth/mobile/login", Map.of("email", email, "password", password),
 				String.class);
 	}
-
+	
 	private String sha256(String value) throws Exception {
 		return HexFormat.of()
 				.formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));

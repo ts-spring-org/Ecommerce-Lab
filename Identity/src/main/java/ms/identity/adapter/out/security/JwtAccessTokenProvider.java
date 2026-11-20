@@ -15,6 +15,7 @@ import ms.identity.application.port.out.AccessTokenProviderPort;
 
 @Component
 public class JwtAccessTokenProvider implements AccessTokenProviderPort {
+
 	private final JwtEncoder encoder;
 	private final String issuer;
 	private final String audience;

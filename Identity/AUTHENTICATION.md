@@ -6,6 +6,7 @@
 - Refresh tokens are 256-bit random opaque secrets. PostgreSQL stores only SHA-256 hashes.
 - Refresh tokens rotate on every refresh. A consumed-token replay revokes its complete token family.
 - Refresh tokens are bound to a client type (WEB or MOBILE).
+- Logout revokes refresh-token families. Already-issued access JWTs remain valid until their short expiry (15 minutes by default); immediate JWT revocation would require a shared denylist or token-version lookup.
 - Only ACTIVE users can log in or refresh tokens. Email verification activates PENDING_VERIFICATION accounts.
 - HTTPS is mandatory outside local development. HTTP headers do not protect tokens without TLS.
 
@@ -49,7 +50,7 @@ Configure MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, MAIL_SMTP_AUTH, MA
 
 ## Rate limiting
 
-The Identity service applies PostgreSQL-backed per-IP limits to registration, login, refresh, email verification, and resend endpoints. Configure IDENTITY_RATE_LIMIT_ENABLED and ensure the reverse proxy is configured to supply a trustworthy client address; do not trust arbitrary client-supplied forwarding headers. Expired buckets are cleaned daily.
+The Identity service applies PostgreSQL-backed per-IP limits: registration 5/hour, login 10/15 minutes, refresh 30/15 minutes, email verification 10/15 minutes, and resend 3/15 minutes. A blocked bucket is retried after a 5-minute cooldown and remains throttled until its window resets. Configure IDENTITY_RATE_LIMIT_ENABLED and ensure the reverse proxy strips untrusted forwarding headers and supplies a trustworthy client address. Expired buckets are cleaned daily.
 
 ## Database migrations
 
