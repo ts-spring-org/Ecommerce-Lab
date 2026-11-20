@@ -4,6 +4,17 @@ spring:
       ddl-auto: validate
   liquibase:
     enabled: true
+  mail:
+    host: localhost
+    port: 1025
+    username: test
+    password: test
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 identity:
   security:
     jwt:
@@ -15,12 +26,13 @@ identity:
     refresh-token:
       ttl: P30D
     web:
-      allowed-origins: http://localhost:3000
+      allowed-origins: http://localhost:5173
       cookie-secure: false
       cookie-same-site: Lax
   email-verification:
-    frontend-base-url: http://localhost:3000
+    frontend-base-url: http://localhost:5173
   rate-limit:
     enabled: false
   outbox:
-    enabled: false
+    enabled: true
+    poll-interval: 3000

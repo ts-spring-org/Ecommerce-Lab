@@ -32,10 +32,15 @@ public class LoginService implements LoginUseCase {
 	private final Duration refreshTtl;
 	private final Duration accessTtl;
 
-	public LoginService(final UserRepositoryPort users, final PasswordHasherPort passwords, final AccessTokenProviderPort accessTokens,
-			RefreshTokenGeneratorPort refreshTokens, RefreshTokenRepositoryPort refreshRepository, Clock clock,
-			@Value("${identity.security.refresh-token.ttl}") Duration refreshTtl,
-			@Value("${identity.security.jwt.access-token-ttl}") Duration accessTtl) {
+	public LoginService(
+			final UserRepositoryPort users, 
+			final PasswordHasherPort passwords, 
+			final AccessTokenProviderPort accessTokens,
+			final RefreshTokenGeneratorPort refreshTokens, 
+			final RefreshTokenRepositoryPort refreshRepository, 
+			final Clock clock,
+			@Value("${identity.security.refresh-token.ttl}") final Duration refreshTtl,
+			@Value("${identity.security.jwt.access-token-ttl}") final Duration accessTtl) {
 		this.users = users;
 		this.passwords = passwords;
 		this.accessTokens = accessTokens;
