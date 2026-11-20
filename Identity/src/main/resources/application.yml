@@ -1,13 +1,11 @@
 spring:
   application:
     name: identity-service
-
   datasource:
     url: ${IDENTITY_DB_URL}
     username: ${IDENTITY_DB_USERNAME}
     password: ${IDENTITY_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: validate
@@ -15,13 +13,45 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
-
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS}
 server:
   port: 8081
+  forward-headers-strategy: framework
+
+identity:
+  rate-limit:
+    enabled: ${IDENTITY_RATE_LIMIT_ENABLED:true}
+  outbox:
+    enabled: ${IDENTITY_OUTBOX_ENABLED:true}
+    poll-interval: ${IDENTITY_OUTBOX_POLL_INTERVAL}
+  email-verification:
+    frontend-base-url: ${IDENTITY_FRONTEND_BASE_URL}
+  security:
+    jwt:
+      issuer: ${IDENTITY_JWT_ISSUER}
+      audience: ${IDENTITY_JWT_AUDIENCE}
+      access-token-ttl: ${IDENTITY_ACCESS_TOKEN_TTL}
+      private-key: ${IDENTITY_JWT_PRIVATE_KEY}
+      public-key: ${IDENTITY_JWT_PUBLIC_KEY}
+    refresh-token:
+      ttl: ${IDENTITY_REFRESH_TOKEN_TTL}
+    web:
+      allowed-origins: ${IDENTITY_WEB_ALLOWED_ORIGINS}
+      cookie-secure: ${IDENTITY_COOKIE_SECURE}
+      cookie-same-site: ${IDENTITY_COOKIE_SAME_SITE}
 
 management:
   endpoints:

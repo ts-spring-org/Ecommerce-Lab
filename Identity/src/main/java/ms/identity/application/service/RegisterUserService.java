@@ -3,48 +3,49 @@ package ms.identity.application.service;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
-
+import org.springframework.transaction.annotation.Transactional;
 import ms.identity.application.command.RegisterUserCommand;
 import ms.identity.application.exception.EmailAlreadyRegisteredException;
 import ms.identity.application.port.in.RegisterUserUseCase;
 import ms.identity.application.port.out.PasswordHasherPort;
 import ms.identity.application.port.out.UserRepositoryPort;
+import ms.identity.application.port.out.VerificationEmailRequestPort;
 import ms.identity.application.results.RegisterUserResult;
 import ms.identity.domain.model.EmailAddress;
 import ms.identity.domain.model.PasswordHash;
 import ms.identity.domain.model.User;
 
 public class RegisterUserService implements RegisterUserUseCase {
-	private final PasswordHasherPort passwordHashedPort;
-	private final UserRepositoryPort userRepositoryPort;
+	private final PasswordHasherPort passwordHasher;
+	private final UserRepositoryPort users;
 	private final Clock clock;
+	private final VerificationEmailRequestPort verificationRequests;
 
-	public RegisterUserService(final PasswordHasherPort passwordHashedPort, final UserRepositoryPort userRepositoryPort,
+	public RegisterUserService(final PasswordHasherPort passwordHasher, final UserRepositoryPort users,
 			final Clock clock) {
-		this.passwordHashedPort = passwordHashedPort;
-		this.userRepositoryPort = userRepositoryPort;
+		this(passwordHasher, users, clock, user -> {
+		});
+	}
+
+	public RegisterUserService(final PasswordHasherPort passwordHasher, final UserRepositoryPort users,
+			final Clock clock, final VerificationEmailRequestPort verificationRequests) {
+		this.passwordHasher = passwordHasher;
+		this.users = users;
 		this.clock = clock;
+		this.verificationRequests = verificationRequests;
 	}
 
 	@Override
+	@Transactional
 	public RegisterUserResult register(final RegisterUserCommand command) {
-
-		final EmailAddress email = EmailAddress.of(command.email());
-
-		if (userRepositoryPort.existsByEmail(email)) {
+		EmailAddress email = EmailAddress.of(command.email());
+		if (users.existsByEmail(email))
 			throw new EmailAlreadyRegisteredException();
-		}
-
-		final String encodedPassword = passwordHashedPort.hash(command.rawPassword());
-
-		final PasswordHash pwdHash = new PasswordHash(encodedPassword);
-
-		final Instant now = Instant.now(clock);
-		User user = User.register(UUID.randomUUID(), email, pwdHash, command.firstName(), command.lastName(), now);
-
-		userRepositoryPort.save(user);
-
-		return new RegisterUserResult(user.getId(), user.getEmail().toString(), user.getStatus(), now);
+		PasswordHash passwordHash = new PasswordHash(passwordHasher.hash(command.rawPassword()));
+		Instant now = Instant.now(clock);
+		User user = User.register(UUID.randomUUID(), email, passwordHash, command.firstName(), command.lastName(), now);
+		users.save(user);
+		verificationRequests.requestVerification(user);
+		return new RegisterUserResult(user.getId(), user.getEmail().value(), user.getStatus(), now);
 	}
-
 }

@@ -4,8 +4,35 @@ spring:
       ddl-auto: validate
   liquibase:
     enabled: true
-
-logging:
-  level:
-    liquibase: INFO
-    org.springframework.boot.liquibase: DEBUG
+  mail:
+    host: localhost
+    port: 1025
+    username: test
+    password: test
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+identity:
+  security:
+    jwt:
+      issuer: http://localhost:8081
+      audience: ecommerce-api
+      access-token-ttl: PT15M
+      private-key: MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC99zYCipYnwv1P0Fyv+1l8ow+ImeWRapgNC2AnCZiNeB4NTZjbX2XJwLTvFfQWTBkJyEDAkEUjW/n9M2YsW/M8Tu5nX+l3KHevlvb0kxYzLY17omZ6JZQMycXO/ltmJDCK3GQQEQzsEc0KnKF6kUK1Mu1uK1KSM7j/GTByWesMVpXT/KUO49yC9jSZJR3/RmmUtzKheo9V9FkEnoRSrq36L3HOz+PvGHXJtgzcLmo+voqRQKWGgNaZ080slSbQfGGHDRvG+lMgZJNI08ZPavyzRY/lAUwuHExmWuYq3nZ6gHN1MCh+2ydtCKtPRjCKQk8jAWT/PfvLbEyTA7k+aLS1AgMBAAECggEACHCtl3FQeJXJd9YnHn6JaRs8yAuMz2gwBBLBHYFOPalCx8G7cxiK+jeaRZRXhih9ZRmrntXW7I11zvhaQTBL31F83PgkjfHGisINv0VMIDWVURMgs6tsJ4ezegRQS62uwAyvH9oFSMI46cOWlrTrhNRHB+hCDYYUx+jDmUd1EdT9zzxpfk1JpwJUlZNydVFWwYRrGu47CJvuIsSv2/OTgCXlb0nYY1g0SQfGOfcdr6JMlpsFj57NMlOZq1x9zfhOgDNmyE7/qdkwdnAS4EuGD56dnVMc1UxyML+ZEuc3Fqvhco6WBCbvFmPev5acMbh1xYELwcG7IsljWTjbtdMEoQKBgQDf06G5TlpFn0VN7skZ0ZgyOGGHzG+Jt+jqK88A/cRyMfz4ZFtXp6oCHeeZJxtiojlT53BBkN32U6pKilcrf/8Tq+j/kQCpcfVH1467Q0Bs5/rOBUCQPU7eKZPKupqTafAWMBOReDxFVj40zK9Zr8UBMx+HokHDNYqCz3k4f78eqQKBgQDZRY/6Fx7y4OEQK8osurgS/ii0OfGL4ecuLuplXaajMq8SyBS+4raPRjz6R7WReK+tD/BXxTbXPg5ujn/IWgcQy9WVTLHoEF7zIpashUzEBcA2gu9woQTCKh9gAXsDKi+b2MapP3kOq5HU29RrLW05lA8enaZsIVyrD9p2K3VpLQKBgCPYwQ3sfoin+XGBzLNV3gos/XHCTBrCWYsneP+vpMalOt6NNBPVxmSQZYchvEEPuh618kSN7v6EZ8GIZm2REkkUPzyu/Gwm1CGtZC6Zlrfab1CPhseTCg6KmiDdwePaE5l6GagymXSBW3UZUvwKKoMGrQYL9nxNFuHcWI2z5+gBAoGASg2EigfRW5S8AOf764zkakzIEM1i/3tKcRo6d7wYrKz8sNkTARCCioi1BdTlFKTes4yoLTIhg/E5uALHmMDegaIHtPBD/sV9pz7Vvg1c4b7YCXxNIcUvuwHiWbWHeMerHGIhK9RfbVmaxcL7PmBoRuSo1pWDAH3KeN9ZZUdgqC0CgYEAvqbWEoK0Z1iV4N3Fh5vo2haDBfwIbQycEAfSefvVO40Yk3/5TDMNj1CtenDVHgCnAZCsHYbFCZJKDJWDxLwkYf1EdcJbjE/uAKSqj4SoEB2xq+4D7aRS0Bkhimt8prSqRbwsCwCUV69+DJWsc0QMkO7/niHQzq4UcHJsiVPVbYc=
+      public-key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvfc2AoqWJ8L9T9Bcr/tZfKMPiJnlkWqYDQtgJwmYjXgeDU2Y219lycC07xX0FkwZCchAwJBFI1v5/TNmLFvzPE7uZ1/pdyh3r5b29JMWMy2Ne6JmeiWUDMnFzv5bZiQwitxkEBEM7BHNCpyhepFCtTLtbitSkjO4/xkwclnrDFaV0/ylDuPcgvY0mSUd/0ZplLcyoXqPVfRZBJ6EUq6t+i9xzs/j7xh1ybYM3C5qPr6KkUClhoDWmdPNLJUm0Hxhhw0bxvpTIGSTSNPGT2r8s0WP5QFMLhxMZlrmKt52eoBzdTAoftsnbQirT0YwikJPIwFk/z37y2xMkwO5Pmi0tQIDAQAB
+    refresh-token:
+      ttl: P30D
+    web:
+      allowed-origins: http://localhost:5173
+      cookie-secure: false
+      cookie-same-site: Lax
+  email-verification:
+    frontend-base-url: http://localhost:5173
+  rate-limit:
+    enabled: false
+  outbox:
+    enabled: true
+    poll-interval: 3000
